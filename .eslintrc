@@ -8,7 +8,14 @@
 
   "globals": {},
 
-  "extends": "eslint:recommended",
+  "plugins": [
+    "react"
+  ],
+
+  "extends": [
+    "eslint:recommended",
+    "plugin:react/recommended"
+  ],
 
   "parserOptions": {
     "sourceType": "module",

@@ -1,14 +1,15 @@
 import {Fil} from "../index"
 import path from "path";
 import parseArgs from "minimist";
+import 'source-map-support/register';
 
 const argv = parseArgs(process.argv, {
   boolean: "dynamic"
 });
 
-console.log(process.version);
+console.log( process.version);
 
-const projectRootFile = require(path.join(process.cwd(), "index.js")).default;
+const projectRootFile = require(path.join(process.cwd(), "sample/index.js")).default;
 const projectRunner = Fil.createProject({project: projectRootFile});
 
 if (argv.dynamic) {

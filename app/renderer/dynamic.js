@@ -14,7 +14,7 @@ export class DynamicRenderer {
       response.end(body);
     } catch (e) {
       console.error(e);
-      response.end(`${e.stack}`);
+      response.end(`${e.message}`);
     }
   }
 

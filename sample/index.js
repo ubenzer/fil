@@ -1,20 +1,20 @@
-import PostCollection from "./contentTypes/postCollection";
+import post from "./contentTypes/post";
 import experimentalHandler from "./routes/handler1";
+import postCollection from "./contentTypes/postCollection";
 
 class Project {
 
   contentTypes() {
-    return [PostCollection];
+    return {postCollection};
   }
 
   routeHandlers() {
     return {experimentalHandler};
   }
 
-  watcher$() {
-    return PostCollection.watcher$();
-  }
   outPath() { return "./dist"; }
+
+  cachePath() { return "./cache"; }
 }
 const project = new Project();
 export default project;

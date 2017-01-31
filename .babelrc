@@ -1,4 +1,10 @@
 {
-  "presets": ["es2015", "stage-2"],
-  "plugins": ["transform-react-jsx"]
+  "presets": ["es2015"],
+  "plugins": [
+    "transform-react-jsx",
+    ["transform-runtime", {
+      "polyfill": false,
+      "regenerator": true
+    }]
+  ]
 }

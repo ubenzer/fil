@@ -1,6 +1,8 @@
 import Rx from 'rxjs/Rx';
+import utils from './utils/utils';
+import {Project} from "./project";
 
-export class RouteHandler {
+export class RouteManager {
   constructor({project}) {
     this._project = project;
     this._cache = {
@@ -58,7 +60,7 @@ export class RouteHandler {
 
     // check arguments first to see if we already have a calculated value
     const newArgs = await handler.instance.handlesArguments({project: this._project});
-    const areArgsSame = this._compareArgumentCache({newArgs, oldArgs: handler.handlesArgs});
+    const areArgsSame = Project._compareArgumentCache({newArgs, oldArgs: handler.handlesArgs});
     if (handler.handles !== null && areArgsSame) {
       return handler.handles;
     }
@@ -71,7 +73,7 @@ export class RouteHandler {
   async _handleUrlVia({url, handlerId}) {
     this._ensureHandler({handlerId});
     const handlerInstance = this._cache.handlers[handlerId].instance;
-    return handlerInstance.handle({url});
+    return handlerInstance.handle({url, utils, project: this._project});
   }
 
   /* Cache operations */
@@ -85,7 +87,7 @@ export class RouteHandler {
     }
     const handlerCache = this._cache.handlers[handlerId];
     if (!handlerCache.instance) {
-      const handlers = this._project.routeHandlers();
+      const handlers = this._project._project.routeHandlers();
       // const HandlerC = handlers[handlerId];
       // handlerCache.instance = new HandlerC();
       handlerCache.instance = handlers[handlerId];
@@ -93,24 +95,9 @@ export class RouteHandler {
   }
 
   _ensureHandlers() {
-    const handlers = this._project.routeHandlers();
+    const handlers = this._project._project.routeHandlers();
     Object.keys(handlers).forEach((handlerId) => {
       this._ensureHandler({handlerId});
     });
-  }
-
-  _compareArgumentCache({newArgs, oldArgs}) {
-    if (newArgs === oldArgs) { return true; }
-    newArgs = newArgs || {};
-    oldArgs = oldArgs || {};
-    const newArgsKeys = Object.keys(newArgs);
-    const oldArgsKeys = Object.keys(oldArgs);
-    if (newArgsKeys.length !== oldArgsKeys.length) { return false; }
-    // key names
-    const isKeysSame = newArgsKeys.every(x => oldArgsKeys.indexOf(x) > -1);
-    if (!isKeysSame) { return false; }
-
-    // key values
-    return newArgsKeys.every(x => newArgs[x] === oldArgs[x]);
   }
 }

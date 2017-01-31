@@ -1,6 +1,6 @@
+import React from "react";
 
-
-export default ({content}) => (
+const template = ({content}) => (
  <html>
   <head>
     <title>Hello</title>
@@ -10,4 +10,5 @@ export default ({content}) => (
     <div dangerouslySetInnerHTML={{__html: content}} />
   </body>
  </html>
-)
+);
+export {template};

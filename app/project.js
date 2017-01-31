@@ -1,56 +1,45 @@
-import {RouteHandler} from "./routeHandler";
+import {RouteManager} from "./routeManager";
+import {ContentManager} from "./contentManager";
 
 export class Project {
   constructor({project}) {
     this._project = project;
-    this._routeHandler = new RouteHandler({project: this._project});
-
-    this._cache = {
-      contents: {
-        id: {
-          children: null,
-          content: "hello",
-          isBinary: false,
-          contentSubscription: null,
-          contentArgs: null,
-          childrenSubscription: null,
-          childrenArgs: null
-        }
-      }
-    };
+    this._routeManager = new RouteManager({project: this});
+    this._contentManager = new ContentManager({project: this});
   }
 
-  init() {
+  // Route related stuff
+  async handles() { return this._routeManager.handles(); }
+  async handle({url}) { return this._routeManager.handle({url}); }
 
-  }
-
-
-  // Route handler related stuff
-  async handles() { return this._routeHandler.handles(); }
-  async handle({url}) { return this._routeHandler.handle({url}); }
-
-
-
-
-
+  // Content related stuff
   async contentTypes() { // returns an array of registered types
-    return ["post", "meta"];
+    return this._contentManager.contentTypes();
+  }
+  async metaOf({contentId}) { // returns all contents registered to a type
+    return this._contentManager.metaOf({contentId});
   }
 
-  async metaOf(contentId) { // returns all contents registered to a type
-    return {
-      id: contentId,
-      type: "post",
-      hasChild: true,
-      children: [["id list"]]
-    }
-  }
-
-  async valueOf(contentId) {
-    // returns whatever value that content has
+  async valueOf({contentId}) {
+    return this._contentManager.valueOf({contentId});
   }
 
   outPath() { return this._project.outPath(); }
+  cachePath() { return this._project.cachePath(); }
 
-  config() { }
+  config() { throw new Error("Not implemented"); }
+}
+Project._compareArgumentCache = ({newArgs, oldArgs}) => {
+  if (newArgs === oldArgs) { return true; }
+  newArgs = newArgs || {};
+  oldArgs = oldArgs || {};
+  const newArgsKeys = Object.keys(newArgs);
+  const oldArgsKeys = Object.keys(oldArgs);
+  if (newArgsKeys.length !== oldArgsKeys.length) { return false; }
+  // key names
+  const isKeysSame = newArgsKeys.every(x => oldArgsKeys.indexOf(x) > -1);
+  if (!isKeysSame) { return false; }
+
+  // key values
+  return newArgsKeys.every(x => newArgs[x] === oldArgs[x]);
 }

@@ -5,7 +5,6 @@ import {DynamicRenderer} from "./renderer/dynamic";
 export class ProjectRunner {
   constructor({project}) {
     this._project = new Project({project});
-    this._project.init();
   }
 
   async generateStatic() {
