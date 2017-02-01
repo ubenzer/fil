@@ -1,11 +1,11 @@
-import post from "./contentTypes/post";
 import experimentalHandler from "./routes/handler1";
 import postCollection from "./contentTypes/postCollection";
+import post from "./contentTypes/post";
 
 class Project {
 
   contentTypes() {
-    return {postCollection};
+    return {posts: postCollection, post};
   }
 
   routeHandlers() {

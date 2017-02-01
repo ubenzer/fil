@@ -1,5 +1,6 @@
 import {RouteManager} from "./routeManager";
 import {ContentManager} from "./contentManager";
+import deepEql from "deep-eql";
 
 export class Project {
   constructor({project}) {
@@ -30,16 +31,5 @@ export class Project {
   config() { throw new Error("Not implemented"); }
 }
 Project._compareArgumentCache = ({newArgs, oldArgs}) => {
-  if (newArgs === oldArgs) { return true; }
-  newArgs = newArgs || {};
-  oldArgs = oldArgs || {};
-  const newArgsKeys = Object.keys(newArgs);
-  const oldArgsKeys = Object.keys(oldArgs);
-  if (newArgsKeys.length !== oldArgsKeys.length) { return false; }
-  // key names
-  const isKeysSame = newArgsKeys.every(x => oldArgsKeys.indexOf(x) > -1);
-  if (!isKeysSame) { return false; }
-
-  // key values
-  return newArgsKeys.every(x => newArgs[x] === oldArgs[x]);
-}
+  return deepEql(newArgs, oldArgs);
+};

@@ -61,6 +61,11 @@ export class RouteManager {
     // check arguments first to see if we already have a calculated value
     const newArgs = await handler.instance.handlesArguments({project: this._project});
     const areArgsSame = Project._compareArgumentCache({newArgs, oldArgs: handler.handlesArgs});
+
+    if (!areArgsSame) {
+      console.log(`Route Cache miss for: ${handlerId}`);
+    }
+
     if (handler.handles !== null && areArgsSame) {
       return handler.handles;
     }

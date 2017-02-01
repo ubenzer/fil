@@ -9,7 +9,7 @@ const argv = parseArgs(process.argv, {
 
 console.log( process.version);
 
-const projectRootFile = require(path.join(process.cwd(), "sample/index.js")).default;
+const projectRootFile = require(path.join(process.cwd(), "index.js")).default;
 const projectRunner = Fil.createProject({project: projectRootFile});
 
 if (argv.dynamic) {

@@ -1,4 +1,3 @@
-
 export class Utils {
   requireUncached(module) {
     delete require.cache[require.resolve(module)];

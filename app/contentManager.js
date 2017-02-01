@@ -84,6 +84,8 @@ export class ContentManager {
     if (cachedContent.contentArgs !== null && areArgsSame) {
       return;
     }
+    console.log(`Content Cache miss for: ${stringId}`);
+
     const newContent = await cachedContent.fn.content(newArgs);
     cachedContent.contentArgs = newArgs;
     cachedContent.isBinary = newContent instanceof Buffer;
@@ -103,12 +105,13 @@ export class ContentManager {
 
     if (!cachedContent.contentSubscription) {
       cachedContent.contentSubscription = cachedContent.fn.contentWatcher$(newArgs)
-        .subscribe(this._contentSubscriptionFnFor({contentId}));
+        .subscribe(this._contentSubscriptionFnFor.bind(this, {contentId}));
     }
   }
 
   _contentSubscriptionFnFor({contentId}) {
     const stringId = ContentManager._toStringId({contentId});
+    console.log(`Content changed for: ${stringId}`);
     this._ensureCacheEntryFor({contentId});
 
     const cachedContent = this._cache.contents[stringId];
@@ -124,6 +127,7 @@ export class ContentManager {
 
   _childrenSubscriptionFnFor({contentId}) {
     const stringId = ContentManager._toStringId({contentId});
+    console.log(`Children changed for: ${stringId}`);
     this._ensureCacheEntryFor({contentId});
 
     const cachedContent = this._cache.contents[stringId];
@@ -154,7 +158,7 @@ export class ContentManager {
     if (cachedContent.children) {
       cachedContent.children.forEach(c => this._deleteCacheEntryFor(c));
     }
-    this._cache.contents.delete(stringId);
+    delete this._cache.contents[stringId];
   }
 
   async _ensureCachedChildrenFor({contentId}) {
@@ -167,6 +171,10 @@ export class ContentManager {
     const newArgs = await cachedContent.fn.childrenArguments({project: this._project, contentId});
     const areArgsSame = Project._compareArgumentCache({newArgs, oldArgs: cachedContent.childrenArgs});
 
+    if (!areArgsSame) {
+      console.log(`Child Cache miss for: ${stringId}`);
+    }
+
     if (cachedContent.childrenArgs !== null && areArgsSame) {
       return;
     }
@@ -175,8 +183,8 @@ export class ContentManager {
     cachedContent.children = newChildren;
 
     if (!cachedContent.childrenSubscription) {
-      cachedContent.Subscription  = cachedContent.fn.childrenWatcher$(newArgs)
-        .subscribe(this._childrenSubscriptionFnFor({contentId}));
+      cachedContent.childrenSubscription  = cachedContent.fn.childrenWatcher$(newArgs)
+        .subscribe(this._childrenSubscriptionFnFor.bind(this, {contentId}));
     }
   }
 }
