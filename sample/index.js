@@ -1,8 +1,9 @@
 import experimentalHandler from "./routes/handler1";
-import postCollection from "./contentTypes/postCollection";
-import post from "./contentTypes/post";
+import {postCollection} from "./contentTypes/postCollection";
+import {post} from "./contentTypes/post";
+import path from "path";
 
-class Project {
+export class Project {
 
   contentTypes() {
     return {posts: postCollection, post};
@@ -16,5 +17,7 @@ class Project {
 
   cachePath() { return "./cache"; }
 }
+Project.contentPath = "contents";
+Project.postPath = path.join("contents", "post");
 const project = new Project();
 export default project;

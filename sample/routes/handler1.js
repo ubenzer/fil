@@ -4,7 +4,7 @@ import React from "react";
 
 export class ExperimentalHandler {
   async handlesArguments({project}) {
-    const posts = await project.metaOf({contentId: ["posts"]});
+    const posts = await project.metaOf({id: "posts"});
     return {
       posts: posts.children
     };
@@ -15,7 +15,7 @@ export class ExperimentalHandler {
 
   async handle({utils, project, url}) {
     const id = url.substr(1);
-    const content = await project.valueOf({contentId: ["post", id]});
+    const content = await project.valueOf({id: `post@${id}`});
 
     const Template = utils.requireUncached(path.join(process.cwd(), "template", "template")).template;
     const str = ReactDOMServer.renderToStaticMarkup(<Template content={id + content} />);

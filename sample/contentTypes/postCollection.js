@@ -1,39 +1,43 @@
 import Rx from 'rxjs/Rx';
 import chokidar from 'chokidar';
 import path from "path";
-import fs from "fs";
-import fsPromise from "../utils/fsPromise";
+import {Project} from "../index";
+import {getFoldersIn} from "../utils";
 
-export class PostCollection {
-  childrenWatcher$() {
-    return Rx.Observable.create((subscriber) => {
+export const postCollection = {
+  childrenWatcher$: () => (
+    Rx.Observable.create((subscriber) => {
       const watcher = chokidar.watch(
-        PostCollection.contentPath,
-        {ignored: /(^|[\/\\])\../, ignoreInitial: true, depth: 1}
+        Project.postPath,
+        {
+          ignored: ["**/*"],
+          ignoreInitial: true,
+          depth: 3
+        }
       );
-      watcher.on('all', () => { subscriber.next(); });
-      //subscriber.complete();
+      watcher.on('addDir', () => { subscriber.next(); });
+      watcher.on('unlinkDir', () => { subscriber.next(); });
       return () => watcher.close();
-    }).publish().refCount();
-  }
-  async childrenArguments() { return {}; }
-  async children() {
-    const fullPath = path.join(PostCollection.contentPath, "post");
-    return fsPromise.readdirAsync(fullPath)
-      .then((paths) =>
-         paths
-          .filter(f => fs.statSync(path.join(PostCollection.contentPath, "post", f)).isDirectory())
-          .map(name => ["post", name])
-      );
-  }
+    }).publish().refCount()
+  ),
+  childrenArguments: async () => ({}),
+  children: async () => {
+    const years = await getFoldersIn(Project.postPath);
+    const months = await Promise.all(
+      years.map(year =>
+        getFoldersIn(path.join(Project.postPath, year))
+          .then(month => ({year, month})))
+    );
 
-  async contentArguments() {
-    return {}
-  }
-  async content() {
-    return {}
-  }
-  contentWatcher$() { return Rx.Observable.empty(); }
-}
-PostCollection.contentPath = path.join(process.cwd(), "contents");
-export default new PostCollection();
+    const posts = await Promise.all(
+      months.map(({year, month}) =>
+        getFoldersIn(path.join(Project.postPath, year, month))
+          .then(postId => ({year, month, postId})))
+    );
+
+    return posts.map(({year, month, postId}) => `post@${year}/${month}/${postId}`);
+  },
+  contentArguments: async () => ({}),
+  content: async () => ({}),
+  contentWatcher$: () => Rx.Observable.empty()
+};

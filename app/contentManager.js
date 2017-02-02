@@ -11,32 +11,27 @@ export class ContentManager {
     };
   }
 
-  async contentTypes() {
-    const id = ContentManager._toStringId([]);
-    this._ensureCacheEntryFor({id});
-    return Object.keys(this._cache.contents);
+  contentTypes() {
+    return Object.keys(this._project._project.contentTypes());
   }
 
-  async metaOf({contentId}) {
-    const stringId = ContentManager._toStringId({contentId});
-    await this._ensureCachedChildrenFor({contentId});
+  async metaOf({id}) {
+    await this._ensureCachedChildrenFor({id});
 
-    const cachedContent = this._cache.contents[stringId];
+    const cachedContent = this._cache.contents[id];
 
     return {
-      contentId: contentId,
-      type: contentId[0],
+      id: id,
+      type: id.split("@")[0],
       hasChild: cachedContent.children.length > 0,
       children: cachedContent.children
     }
   }
 
-  async valueOf({contentId}) {
-    const stringId = ContentManager._toStringId({contentId});
+  async valueOf({id}) {
+    await this._ensureCachedContentFor({id});
 
-    await this._ensureCachedContentFor({contentId});
-
-    const cachedContent = this._cache.contents[stringId];
+    const cachedContent = this._cache.contents[id];
 
     if (cachedContent.isBinary) {
       const readFile = Rx.Observable.bindNodeCallback(fs.readFile);
@@ -46,11 +41,9 @@ export class ContentManager {
   }
 
   /* Private operations */
-  _ensureCacheEntryFor({contentId}) {
-    const stringId = ContentManager._toStringId({contentId});
-
-    if (!this._cache.contents[stringId]) {
-      this._cache.contents[stringId] = {
+  _ensureCacheEntryFor({id}) {
+    if (!this._cache.contents[id]) {
+      this._cache.contents[id] = {
         isBinary: null,
 
         content: null,
@@ -64,27 +57,26 @@ export class ContentManager {
         fn: null
       };
     }
-    const cachedContent = this._cache.contents[stringId];
+    const cachedContent = this._cache.contents[id];
     if (!cachedContent.fn) {
       const handlers = this._project._project.contentTypes();
-      cachedContent.fn = handlers[contentId[0]];
+      cachedContent.fn = handlers[id.split("@")[0]];
     }
   }
 
-  async _ensureCachedContentFor({contentId}) {
-    const stringId = ContentManager._toStringId({contentId});
-    this._ensureCacheEntryFor({contentId});
+  async _ensureCachedContentFor({id}) {
+    this._ensureCacheEntryFor({id});
 
-    const cachedContent = this._cache.contents[stringId];
+    const cachedContent = this._cache.contents[id];
 
     // check arguments first to see if we already have a calculated value
-    const newArgs = await cachedContent.fn.contentArguments({project: this._project, contentId});
+    const newArgs = await cachedContent.fn.contentArguments({project: this._project, id});
     const areArgsSame = Project._compareArgumentCache({newArgs, oldArgs: cachedContent.contentArgs});
 
     if (cachedContent.contentArgs !== null && areArgsSame) {
       return;
     }
-    console.log(`Content Cache miss for: ${stringId}`);
+    console.log(`Content Cache miss for: ${id}`);
 
     const newContent = await cachedContent.fn.content(newArgs);
     cachedContent.contentArgs = newArgs;
@@ -95,7 +87,7 @@ export class ContentManager {
       await ensureDir(cachePath).toPromise();
 
       const writeFile = Rx.Observable.bindNodeCallback(fs.writeFile);
-      const filePath = path.join.apply(this, [cachePath, ...contentId]);
+      const filePath = path.join.apply(cachePath, id); // TODO sanitize id properly first
       await writeFile(filePath, newContent).toPromise();
 
       cachedContent.content = filePath;
@@ -105,16 +97,15 @@ export class ContentManager {
 
     if (!cachedContent.contentSubscription) {
       cachedContent.contentSubscription = cachedContent.fn.contentWatcher$(newArgs)
-        .subscribe(this._contentSubscriptionFnFor.bind(this, {contentId}));
+        .subscribe(this._contentSubscriptionFnFor.bind(this, {id}));
     }
   }
 
-  _contentSubscriptionFnFor({contentId}) {
-    const stringId = ContentManager._toStringId({contentId});
-    console.log(`Content changed for: ${stringId}`);
-    this._ensureCacheEntryFor({contentId});
+  _contentSubscriptionFnFor({id}) {
+    console.log(`Content changed for: ${id}`);
+    this._ensureCacheEntryFor({id});
 
-    const cachedContent = this._cache.contents[stringId];
+    const cachedContent = this._cache.contents[id];
 
     cachedContent.contentArgs = null;
     cachedContent.content = null;
@@ -125,16 +116,15 @@ export class ContentManager {
     }
   }
 
-  _childrenSubscriptionFnFor({contentId}) {
-    const stringId = ContentManager._toStringId({contentId});
-    console.log(`Children changed for: ${stringId}`);
-    this._ensureCacheEntryFor({contentId});
+  _childrenSubscriptionFnFor({id}) {
+    console.log(`Children changed for: ${id}`);
+    this._ensureCacheEntryFor({id});
 
-    const cachedContent = this._cache.contents[stringId];
+    const cachedContent = this._cache.contents[id];
 
     if (cachedContent.children) {
       cachedContent.children.forEach((c) => {
-        this._deleteCacheEntryFor({contentId: c});
+        this._deleteCacheEntryFor({id: c});
       });
     }
     cachedContent.childrenArgs = null;
@@ -145,9 +135,8 @@ export class ContentManager {
     }
   }
 
-  _deleteCacheEntryFor({contentId}) {
-    const stringId = ContentManager._toStringId({contentId});
-    const cachedContent = this._cache.contents[stringId];
+  _deleteCacheEntryFor({id}) {
+    const cachedContent = this._cache.contents[id];
     if (!cachedContent) { return; }
     if (cachedContent.childrenSubscription) {
       cachedContent.childrenSubscription.unsubscribe();
@@ -158,40 +147,30 @@ export class ContentManager {
     if (cachedContent.children) {
       cachedContent.children.forEach(c => this._deleteCacheEntryFor(c));
     }
-    delete this._cache.contents[stringId];
+    delete this._cache.contents[id];
   }
 
-  async _ensureCachedChildrenFor({contentId}) {
-    const stringId = ContentManager._toStringId({contentId});
-    this._ensureCacheEntryFor({contentId});
+  async _ensureCachedChildrenFor({id}) {
+    this._ensureCacheEntryFor({id});
 
-    const cachedContent = this._cache.contents[stringId];
+    const cachedContent = this._cache.contents[id];
 
     // check arguments first to see if we already have a calculated value
-    const newArgs = await cachedContent.fn.childrenArguments({project: this._project, contentId});
+    const newArgs = await cachedContent.fn.childrenArguments({project: this._project, id});
     const areArgsSame = Project._compareArgumentCache({newArgs, oldArgs: cachedContent.childrenArgs});
-
-    if (!areArgsSame) {
-      console.log(`Child Cache miss for: ${stringId}`);
-    }
 
     if (cachedContent.childrenArgs !== null && areArgsSame) {
       return;
     }
+    console.log(`Child Cache miss for: ${id}`);
+
     const newChildren = await cachedContent.fn.children(newArgs);
     cachedContent.childrenArgs = newArgs;
     cachedContent.children = newChildren;
 
     if (!cachedContent.childrenSubscription) {
       cachedContent.childrenSubscription  = cachedContent.fn.childrenWatcher$(newArgs)
-        .subscribe(this._childrenSubscriptionFnFor.bind(this, {contentId}));
+        .subscribe(this._childrenSubscriptionFnFor.bind(this, {id}));
     }
   }
 }
-ContentManager._toStringId = ({contentId}) => {
-  const invalidContentIds = contentId.filter(ci => ci.indexOf("/") > -1);
-  if (invalidContentIds.length > 0) {
-    throw new Error(`${invalidContentIds.join(",")} contain reserved chars in the id.`)
-  }
-  return contentId.join("/");
-};

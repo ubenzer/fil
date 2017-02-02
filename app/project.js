@@ -17,12 +17,12 @@ export class Project {
   async contentTypes() { // returns an array of registered types
     return this._contentManager.contentTypes();
   }
-  async metaOf({contentId}) { // returns all contents registered to a type
-    return this._contentManager.metaOf({contentId});
+  async metaOf({id}) { // returns all contents registered to a type
+    return this._contentManager.metaOf({id});
   }
 
-  async valueOf({contentId}) {
-    return this._contentManager.valueOf({contentId});
+  async valueOf({id}) {
+    return this._contentManager.valueOf({id});
   }
 
   outPath() { return this._project.outPath(); }
