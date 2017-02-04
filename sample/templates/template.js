@@ -6,7 +6,7 @@ const template = ({content}) => (
     <title>Hello</title>
   </head>
   <body>
-    <h1>Hello</h1>
+    <h1>Hello1</h1>
     <div dangerouslySetInnerHTML={{__html: content}} />
   </body>
  </html>

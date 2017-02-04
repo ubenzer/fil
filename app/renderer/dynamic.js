@@ -31,9 +31,9 @@ export class DynamicRenderer {
             proxy: "localhost:4000",
             open: false
           });
-          // this.project.watcher$().subscribe(() => {
-          //   bs.reload();
-          // });
+          this._project.watcher$().subscribe(() => {
+            bs.reload();
+          });
           resolve();
         });
     });

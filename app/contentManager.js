@@ -9,6 +9,10 @@ export class ContentManager {
     this._cache = {
       contents: {}
     };
+    this._allContentsChangeSubscriber = null;
+    this._allContentsChangeObservable = Rx.Observable.create((subscriber) => {
+      this._allContentsChangeSubscriber = subscriber;
+    });
   }
 
   contentTypes() {
@@ -38,6 +42,10 @@ export class ContentManager {
       return await readFile(cachedContent.content).toPromise();
     }
     return cachedContent.content;
+  }
+
+  watcher$() {
+    return this._allContentsChangeObservable;
   }
 
   /* Private operations */
@@ -114,6 +122,9 @@ export class ContentManager {
       cachedContent.contentSubscription.unsubscribe();
       cachedContent.contentSubscription = null;
     }
+
+    // Notify global subscriber that something changed recently
+    this._allContentsChangeSubscriber.next();
   }
 
   _childrenSubscriptionFnFor({id}) {
@@ -133,6 +144,9 @@ export class ContentManager {
       cachedContent.childrenSubscription.unsubscribe();
       cachedContent.childrenSubscription = null;
     }
+
+    // Notify global subscriber that something changed recently
+    this._allContentsChangeSubscriber.next();
   }
 
   _deleteCacheEntryFor({id}) {

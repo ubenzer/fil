@@ -1,6 +1,7 @@
 import {RouteManager} from "./routeManager";
 import {ContentManager} from "./contentManager";
 import deepEql from "deep-eql";
+import Rx from 'rxjs/Rx';
 
 export class Project {
   constructor({project}) {
@@ -25,10 +26,15 @@ export class Project {
     return this._contentManager.valueOf({id});
   }
 
+  watcher$() {
+    return Rx.Observable.merge(
+      this._contentManager.watcher$(),
+      this._project.watcher$()
+    );
+  }
+
   outPath() { return this._project.outPath(); }
   cachePath() { return this._project.cachePath(); }
-
-  config() { throw new Error("Not implemented"); }
 }
 Project._compareArgumentCache = ({newArgs, oldArgs}) => {
   return deepEql(newArgs, oldArgs);
