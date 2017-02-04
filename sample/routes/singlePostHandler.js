@@ -2,17 +2,16 @@ import ReactDOMServer from 'react-dom/server';
 import path from "path";
 import React from "react";
 
-export class ExperimentalHandler {
+const singlePostHandler = {
   async handlesArguments({project}) {
     const posts = await project.metaOf({id: "posts"});
     return {
       posts: posts.children
     };
-  }
+  },
   async handles({posts}) {
-    return posts.map(p => `/${p[1]}`);
-  }
-
+    return posts.map(p => `/${p.split("@")[1]}`);
+  },
   async handle({utils, project, url}) {
     const id = url.substr(1);
     const content = await project.valueOf({id: `post@${id}`});
@@ -25,6 +24,5 @@ export class ExperimentalHandler {
       body: str
     }
   }
-}
-const experimentalHandler = new ExperimentalHandler();
-export default experimentalHandler;
+};
+export {singlePostHandler};

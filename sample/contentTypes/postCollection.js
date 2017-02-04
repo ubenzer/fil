@@ -23,17 +23,19 @@ export const postCollection = {
   childrenArguments: async () => ({}),
   children: async () => {
     const years = await getFoldersIn(Project.postPath);
-    const months = await Promise.all(
+    const months = (await Promise.all(
       years.map(year =>
         getFoldersIn(path.join(Project.postPath, year))
-          .then(month => ({year, month})))
-    );
+          .then(months => months.map(month => ({year, month})))
+      )
+    )).reduce((acc, monthArray) => [...acc, ...monthArray], []);
 
-    const posts = await Promise.all(
+    const posts = (await Promise.all(
       months.map(({year, month}) =>
         getFoldersIn(path.join(Project.postPath, year, month))
-          .then(postId => ({year, month, postId})))
-    );
+          .then(postIds => postIds.map(postId => ({year, month, postId})))
+      )
+    )).reduce((acc, postArray) => [...acc, ...postArray], []);
 
     return posts.map(({year, month, postId}) => `post@${year}/${month}/${postId}`);
   },

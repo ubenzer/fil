@@ -17,6 +17,11 @@ if (argv.dynamic) {
     .catch((e) => { console.log(e) });
 } else {
   projectRunner.generateStatic()
-    .then(() => { console.log("cool") })
-    .catch((e) => { console.log(e) });
+    .then(() => {
+      process.exit(0);
+    })
+    .catch((e) => {
+      console.log(e);
+      process.exit(-1);
+    });
 }

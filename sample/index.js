@@ -1,4 +1,5 @@
-import experimentalHandler from "./routes/handler1";
+import {singlePostHandler} from "./routes/singlePostHandler";
+import {recentPostsCollectionHandler} from "./routes/recentPostsCollectionHandler";
 import {postCollection} from "./contentTypes/postCollection";
 import {post} from "./contentTypes/post";
 import path from "path";
@@ -10,7 +11,7 @@ export class Project {
   }
 
   routeHandlers() {
-    return {experimentalHandler};
+    return {singlePostHandler, recentPostsCollectionHandler};
   }
 
   outPath() { return "./dist"; }

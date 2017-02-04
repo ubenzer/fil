@@ -33,7 +33,7 @@ export const post = {
   },
   contentArguments: async ({id}) => ({id}),
   content: async ({id}) => (
-    fsPromise.readFile(path.join(path.join(Project.postPath, idToPath(id), "index.md"), "utf8"))
+    fsPromise.readFileAsync(path.join(Project.postPath, idToPath(id), "index.md"), "utf8")
       .then(contents => md.render(contents))
   ),
   contentWatcher$: ({id}) => (

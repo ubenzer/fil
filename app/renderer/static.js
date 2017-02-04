@@ -12,7 +12,7 @@ export class StaticRenderer {
       .flatMap(url => url)
       .mergeMap(url => this._project.handle({url}), (url, {headers, body}) => ({headers, body, url}))
       .flatMap(({headers, body, url}) => {
-        const pathToWrite = path.join(process.cwd(), this._project.outPath(), url) + ".html";
+        const pathToWrite = path.join(process.cwd(), this._project.outPath(), url, "index.html");
         const outputFile = Rx.Observable.bindNodeCallback(fs.outputFile);
         return outputFile(pathToWrite, body);
       })
