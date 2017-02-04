@@ -1,6 +1,5 @@
-import Rx from 'rxjs/Rx';
+import {fsPromise} from "../utils";
 import path from "path";
-import fs from "fs-extra";
 
 export class StaticRenderer {
   constructor({project}) {
@@ -8,14 +7,21 @@ export class StaticRenderer {
   }
 
   async render() {
-    return Rx.Observable.fromPromise(this._project.handles())
-      .flatMap(url => url)
-      .mergeMap(url => this._project.handle({url}), (url, {headers, body}) => ({headers, body, url}))
-      .flatMap(({headers, body, url}) => {
-        const pathToWrite = path.join(process.cwd(), this._project.outPath(), url, "index.html");
-        const outputFile = Rx.Observable.bindNodeCallback(fs.outputFile);
-        return outputFile(pathToWrite, body);
-      })
-      .toPromise();
+    const urlList = await this._project.handles();
+
+    // render pages one by one
+    for (const url of urlList) {
+      const {headers, body} = await this._project.handle({url});
+      const pathToWrite = path.join(this._project.outPath(), url, "index.html");
+      await fsPromise.outputFileAsync(pathToWrite, body);
+    }
+
+    // render pages in parallel
+    // return Promise.all(urlList.map(url => {
+    //   return this._project.handle({url}).then(({headers, body}) => {
+    //     const pathToWrite = path.join(this._project.outPath(), url, "index.html");
+    //     return fsPromise.outputFileAsync(pathToWrite, body);
+    //   });
+    // }));
   }
 }

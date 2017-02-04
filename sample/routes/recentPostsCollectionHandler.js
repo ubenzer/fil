@@ -30,13 +30,12 @@ const recentPostsCollectionHandler = {
   async handles({posts}) {
     const paginatedPostCollection = calculatePagination({posts});
 
-    return paginatedPostCollection.map(({isFirstPage, pageNumber}) => `/${isFirstPage ? "" : pageNumber}`);
+    return paginatedPostCollection.map(({isFirstPage}, index) => `/${isFirstPage ? "" : index}`);
   },
   async handle({utils, project, url}) {
-    const pageNumber = +(url.substr(1) || 0);
+    const pageNumber = +(url.substr(1) || 1) - 1;
     const posts = (await project.metaOf({id: "posts"})).children;
     const postsInPage = calculatePagination({posts})[pageNumber];
-
 
     const postContents = await Promise.all(postsInPage.ids.map(id => project.valueOf({id}).then(value => ({value, id}))));
 

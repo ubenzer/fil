@@ -1,5 +1,4 @@
 import Rx from 'rxjs/Rx';
-import utils from './utils/utils';
 import {Project} from "./project";
 
 export class RouteManager {
@@ -78,7 +77,7 @@ export class RouteManager {
   async _handleUrlVia({url, handlerId}) {
     this._ensureHandler({handlerId});
     const handlerInstance = this._cache.handlers[handlerId].instance;
-    return handlerInstance.handle({url, utils, project: this._project});
+    return handlerInstance.handle({url, project: this._project});
   }
 
   /* Cache operations */

@@ -2,7 +2,7 @@ import Rx from 'rxjs/Rx';
 import chokidar from 'chokidar';
 import path from "path";
 import {Project} from "../index";
-import {getFoldersIn} from "../utils";
+import {getFoldersIn} from "../../app/utils";
 
 export const postCollection = {
   childrenWatcher$: () => (

@@ -13,8 +13,12 @@ const getFoldersIn = async (p) => {
 
 const recursiveReaddir = async (path) => recursiveReaddirAsync(path);
 
+const requireUncached = (module) => {
+  delete require.cache[require.resolve(module)];
+  return require(module);
+};
 
-export {getFoldersIn, recursiveReaddir, fsPromise};
+export {requireUncached, getFoldersIn, recursiveReaddir, fsPromise};
 
 
 

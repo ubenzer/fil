@@ -4,7 +4,7 @@ import chokidar from 'chokidar';
 import path from "path";
 import {Project} from "../index";
 import replace from "replaceall";
-import {fsPromise, recursiveReaddir} from "../utils";
+import {fsPromise, recursiveReaddir} from "../../app/utils";
 
 const md = new MarkdownIt();
 

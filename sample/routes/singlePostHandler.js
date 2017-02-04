@@ -1,6 +1,7 @@
 import ReactDOMServer from 'react-dom/server';
 import path from "path";
 import React from "react";
+import {requireUncached} from "../../app/utils";
 
 const singlePostHandler = {
   async handlesArguments({project}) {
@@ -12,11 +13,11 @@ const singlePostHandler = {
   async handles({posts}) {
     return posts.map(p => `/${p.split("@")[1]}`);
   },
-  async handle({utils, project, url}) {
+  async handle({project, url}) {
     const id = url.substr(1);
     const content = await project.valueOf({id: `post@${id}`});
 
-    const Template = utils.requireUncached(path.join(process.cwd(), "template", "template")).template;
+    const Template = requireUncached(path.join(process.cwd(), "template", "template")).template;
     const str = ReactDOMServer.renderToStaticMarkup(<Template content={id + content} />);
 
     return {
