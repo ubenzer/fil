@@ -1,12 +1,10 @@
-import MarkdownIt from "markdown-it";
 import Rx from 'rxjs/Rx';
 import chokidar from 'chokidar';
 import path from "path";
 import {postPath} from "../index";
 import replace from "replaceall";
 import {fsPromise, recursiveReaddir} from "../../app/utils";
-
-const md = new MarkdownIt();
+import {rawContentToPostObject} from "../utils/post";
 
 const idToPath = (id) => replace("/", path.sep, id.split("@")[1]);
 
@@ -32,10 +30,10 @@ export const post = {
     // TODO use path.sep replace, TODO not files, but other types
   },
   contentArguments: async ({id}) => ({id}),
-  content: async ({id}) => (
-    fsPromise.readFileAsync(path.join(postPath, idToPath(id), "index.md"), "utf8")
-      .then(contents => md.render(contents))
-  ),
+  content: async ({id}) => {
+    const rawFileContent = await fsPromise.readFileAsync(path.join(postPath, idToPath(id), "index.md"), "utf8");
+    return rawContentToPostObject({rawFileContent});
+  },
   contentWatcher$: ({id}) => (
     Rx.Observable.create((subscriber) => {
       const watcher = chokidar.watch(

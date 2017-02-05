@@ -39,7 +39,7 @@ const recentPostsCollectionHandler = {
 
     const postContents = await Promise.all(postsInPage.ids.map(id => project.valueOf({id}).then(value => ({value, id}))));
 
-    const content = postContents.reduce((acc, {value, id}) => acc + "ÜÜÜ" + value + "ÄÄÄ"  + id, "");
+    const content = postContents.reduce((acc, {value, id}) => acc + "ÜÜÜ" + value.htmlExcerpt + "ÄÄÄ"  + id, "");
 
     return {
       headers: [],
