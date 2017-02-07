@@ -1,6 +1,7 @@
 import ReactDOMServer from 'react-dom/server';
 import path from "path";
 import React from "react";
+import {defaultHeadersFor} from "../utils/http";
 
 const chunk = ({array, chunkSize}) => {
   const tbReturned = [];
@@ -42,7 +43,7 @@ const recentPostsCollectionHandler = {
     const content = postContents.reduce((acc, {value, id}) => acc + "ÜÜÜ" + value.htmlExcerpt + "ÄÄÄ"  + id, "");
 
     return {
-      headers: [],
+      headers: defaultHeadersFor({url, defaultContentType: "text/html"}),
       body: content
     }
   }

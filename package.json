@@ -15,15 +15,18 @@
     "deep-eql": "^2.0.1",
     "front-matter": "^2.1.2",
     "fs-extra": "^2.0.0",
+    "globby": "^6.1.0",
     "livereload": "^0.6.0",
     "markdown-it": "^8.2.2",
+    "mime-types": "^2.1.14",
     "minimist": "^1.2.0",
     "react": "^15.4.2",
     "react-dom": "^15.4.2",
     "react-helmet": "^4.0.0",
     "recursive-readdir": "^2.1.0",
     "replaceall": "^0.1.6",
-    "rxjs": "^5.1.0"
+    "rxjs": "^5.1.0",
+    "sharp": "^0.17.1"
   },
   "devDependencies": {
     "babel-cli": "^6.22.2",

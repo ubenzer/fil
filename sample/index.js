@@ -5,10 +5,13 @@ import {post} from "./contentTypes/post";
 import path from "path";
 import Rx from 'rxjs/Rx';
 import chokidar from 'chokidar';
+import {image} from "./contentTypes/image";
+import {file} from "./contentTypes/file";
+import {scaledImage} from "./contentTypes/scaledImage";
 
 const project = {
   contentTypes() {
-    return {posts: postCollection, post};
+    return {posts: postCollection, post, file, image, scaledImage};
   },
   routeHandlers() {
     return {singlePostHandler, recentPostsCollectionHandler};

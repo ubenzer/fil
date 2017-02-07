@@ -12,16 +12,16 @@ export class StaticRenderer {
     // render pages one by one
     for (const url of urlList) {
       const {headers, body} = await this._project.handle({url});
-      const pathToWrite = path.join(this._project.outPath(), url, "index.html");
-      await fsPromise.outputFileAsync(pathToWrite, body);
-    }
+      const ext = path.extname(url);
+      let pathToWrite = path.join(this._project.outPath(), url);
 
-    // render pages in parallel
-    // return Promise.all(urlList.map(url => {
-    //   return this._project.handle({url}).then(({headers, body}) => {
-    //     const pathToWrite = path.join(this._project.outPath(), url, "index.html");
-    //     return fsPromise.outputFileAsync(pathToWrite, body);
-    //   });
-    // }));
+      if (ext.length === 0 && headers["Content-Type"].indexOf("text/html") > -1) {
+        pathToWrite = path.join(pathToWrite, "index.html");
+      }
+
+      const headersFile = `${pathToWrite}.headers`;
+      await fsPromise.outputFileAsync(pathToWrite, body);
+      await fsPromise.outputJsonAsync(headersFile, headers);
+    }
   }
 }

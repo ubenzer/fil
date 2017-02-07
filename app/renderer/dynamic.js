@@ -11,7 +11,9 @@ export class DynamicRenderer {
 
     try {
       const {headers, body} = await this._project.handle({url});
-      response.end(body);
+      response.writeHead(200, headers);
+      response.write(body);
+      response.end();
     } catch (e) {
       console.error(e);
       response.end(`${e.message}`);

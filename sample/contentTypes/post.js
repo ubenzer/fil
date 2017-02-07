@@ -2,42 +2,41 @@ import Rx from 'rxjs/Rx';
 import chokidar from 'chokidar';
 import path from "path";
 import {postPath} from "../index";
-import replace from "replaceall";
-import {fsPromise, recursiveReaddir} from "../../app/utils";
+import {fsPromise} from "../../app/utils";
 import {rawContentToPostObject} from "../utils/post";
-
-const idToPath = (id) => replace("/", path.sep, id.split("@")[1]);
+import globby from "globby";
+import {idToPath, isPathImage, pathToIdPart} from "../utils/id";
+import {chokidar$} from "../utils/chokidar";
 
 export const post = {
   childrenWatcher$: ({id}) => (
-    Rx.Observable.create((subscriber) => {
-      const watcher = chokidar.watch(
-        path.join(postPath, idToPath(id)),
-        {
-          ignored: [".**", "index.md"],
-          ignoreInitial: true
-        }
-      );
-      watcher.on('all', () => { subscriber.next(); });
-      return () => watcher.close();
-    }).publish().refCount()
+    chokidar$(path.join(postPath, idToPath({id})), {
+      ignored: ["**/.*", "index.md", "**/"],
+      depth: 3
+    })
   ),
-  childrenArguments: async ({id}) => ({id}),
   children: async ({id}) => {
-    const p = idToPath(id);
-    return recursiveReaddir(path.join(postPath, p))
-      .then((files) => `post@${p}/${files}`);
-    // TODO use path.sep replace, TODO not files, but other types
+    const p = idToPath({id});
+    return globby(["**/*", "!index.md", "!**/.*"], {
+      cwd: path.join(postPath, p),
+      nodir: true
+    })
+    .then(files => (
+      files.map(file => {
+        const p = path.join(p, file);
+        const childId = pathToIdPart({p});
+        return isPathImage({p}) ? `image@${childId}` : `file@${childId}`;
+      })
+    ));
   },
-  contentArguments: async ({id}) => ({id}),
   content: async ({id}) => {
-    const rawFileContent = await fsPromise.readFileAsync(path.join(postPath, idToPath(id), "index.md"), "utf8");
+    const rawFileContent = await fsPromise.readFileAsync(path.join(postPath, idToPath({id}), "index.md"), "utf8");
     return rawContentToPostObject({rawFileContent});
   },
   contentWatcher$: ({id}) => (
     Rx.Observable.create((subscriber) => {
       const watcher = chokidar.watch(
-        path.join(postPath, idToPath(id), "index.md"),
+        path.join(postPath, idToPath({id}), "index.md"),
         {ignoreInitial: true}
       );
       watcher.on('all', () => { subscriber.next(); });

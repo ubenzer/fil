@@ -3,6 +3,7 @@ import React from "react";
 import {requireUncached} from "../../app/utils";
 import {templatePath} from "../index";
 import {render} from "../utils/template";
+import {defaultHeadersFor} from "../utils/http";
 
 const singlePostHandler = {
   async handlesArguments({project}) {
@@ -22,7 +23,7 @@ const singlePostHandler = {
     const str = render({jsx: <Template content={post.htmlContent} />});
 
     return {
-      headers: [],
+      headers: defaultHeadersFor({url, defaultContentType: "text/html"}),
       body: str
     }
   }

@@ -3,3 +3,4 @@ node_modules
 appold
 /sample/dist/
 /sample/contents/
+/sample/cache/

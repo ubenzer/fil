@@ -2,6 +2,7 @@ import {Project} from "./project";
 import fs from "fs-extra";
 import Rx from 'rxjs/Rx';
 import * as path from "path";
+import {fsPromise} from "./utils";
 
 export class ContentManager {
   constructor({project}) {
@@ -38,8 +39,7 @@ export class ContentManager {
     const cachedContent = this._cache.contents[id];
 
     if (cachedContent.isBinary) {
-      const readFile = Rx.Observable.bindNodeCallback(fs.readFile);
-      return await readFile(cachedContent.content).toPromise();
+      return await fsPromise.readFileAsync(cachedContent.content);
     }
     return cachedContent.content;
   }
@@ -78,32 +78,31 @@ export class ContentManager {
     const cachedContent = this._cache.contents[id];
 
     // check arguments first to see if we already have a calculated value
-    const newArgs = await cachedContent.fn.contentArguments({project: this._project, id});
+    const contentArguments = cachedContent.fn.contentArguments || ContentManager.defaultContentArguments;
+    const newArgs = await contentArguments({project: this._project, id});
     const areArgsSame = Project._compareArgumentCache({newArgs, oldArgs: cachedContent.contentArgs});
 
     if (cachedContent.contentArgs !== null && areArgsSame) {
       return;
     }
-    console.log(`Content Cache miss for: ${id}`);
+    //console.log(`Content Cache miss for: ${id}`);
 
     const newContent = await cachedContent.fn.content(newArgs);
     cachedContent.contentArgs = newArgs;
     cachedContent.isBinary = newContent instanceof Buffer;
     if (cachedContent.isBinary) {
-      const ensureDir = Rx.Observable.bindNodeCallback(fs.ensureDir);
       const cachePath = this._project.cachePath();
-      await ensureDir(cachePath).toPromise();
+      await fsPromise.ensureDirAsync(cachePath);
 
-      const writeFile = Rx.Observable.bindNodeCallback(fs.writeFile);
-      const filePath = path.join.apply(cachePath, id); // TODO sanitize id properly first
-      await writeFile(filePath, newContent).toPromise();
+      const filePath = path.join(cachePath, id); // TODO sanitize id properly first
+      await fsPromise.outputFileAsync(filePath, newContent);
 
       cachedContent.content = filePath;
     } else {
       cachedContent.content = newContent;
     }
 
-    if (!cachedContent.contentSubscription) {
+    if (!cachedContent.contentSubscription && cachedContent.fn.contentWatcher$) {
       cachedContent.contentSubscription = cachedContent.fn.contentWatcher$(newArgs)
         .subscribe(this._contentSubscriptionFnFor.bind(this, {id}));
     }
@@ -170,21 +169,26 @@ export class ContentManager {
     const cachedContent = this._cache.contents[id];
 
     // check arguments first to see if we already have a calculated value
-    const newArgs = await cachedContent.fn.childrenArguments({project: this._project, id});
+    const childrenArguments = cachedContent.fn.childrenArguments || ContentManager.defaultChildrenArguments;
+    const newArgs = await childrenArguments({project: this._project, id});
     const areArgsSame = Project._compareArgumentCache({newArgs, oldArgs: cachedContent.childrenArgs});
 
     if (cachedContent.childrenArgs !== null && areArgsSame) {
       return;
     }
-    console.log(`Child Cache miss for: ${id}`);
+    //console.log(`Child Cache miss for: ${id}`);
 
-    const newChildren = await cachedContent.fn.children(newArgs);
+    const childrenCalculatorFn = cachedContent.fn.children || ContentManager.defaultChildrenCalculator;
+    const newChildren = await childrenCalculatorFn(newArgs);
     cachedContent.childrenArgs = newArgs;
     cachedContent.children = newChildren;
 
-    if (!cachedContent.childrenSubscription) {
-      cachedContent.childrenSubscription  = cachedContent.fn.childrenWatcher$(newArgs)
+    if (!cachedContent.childrenSubscription && cachedContent.fn.childrenWatcher$) {
+      cachedContent.childrenSubscription = cachedContent.fn.childrenWatcher$(newArgs)
         .subscribe(this._childrenSubscriptionFnFor.bind(this, {id}));
     }
   }
 }
+ContentManager.defaultChildrenCalculator = async () => ({});
+ContentManager.defaultChildrenArguments = async ({id}) => ({id});
+ContentManager.defaultContentArguments = async ({id}) => ({id});

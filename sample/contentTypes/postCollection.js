@@ -1,26 +1,16 @@
-import Rx from 'rxjs/Rx';
-import chokidar from 'chokidar';
 import path from "path";
 import {postPath} from "../index";
 import {getFoldersIn} from "../../app/utils";
+import {chokidar$} from "../utils/chokidar";
 
 export const postCollection = {
   childrenWatcher$: () => (
-    Rx.Observable.create((subscriber) => {
-      const watcher = chokidar.watch(
-        postPath,
-        {
-          ignored: ["**/.*"],
-          ignoreInitial: true,
-          depth: 3
-        }
-      );
-      watcher.on('addDir', () => { subscriber.next(); });
-      watcher.on('unlinkDir', () => { subscriber.next(); });
-      return () => watcher.close();
-    }).publish().refCount()
+    chokidar$(postPath, {
+      ignored: ["**/.*", "!**/"],
+      ignoreInitial: true,
+      depth: 3
+    })
   ),
-  childrenArguments: async () => ({}),
   children: async () => {
     const years = await getFoldersIn(postPath);
     const months = (await Promise.all(
@@ -39,7 +29,5 @@ export const postCollection = {
 
     return posts.map(({year, month, postId}) => `post@${year}/${month}/${postId}`);
   },
-  contentArguments: async () => ({}),
-  content: async () => ({}),
-  contentWatcher$: () => Rx.Observable.empty()
+  content: async () => ({})
 };
