@@ -1,5 +1,4 @@
 import {Project} from "./project";
-import fs from "fs-extra";
 import Rx from 'rxjs/Rx';
 import * as path from "path";
 import {fsPromise} from "./utils";

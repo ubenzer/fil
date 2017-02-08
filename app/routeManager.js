@@ -17,11 +17,9 @@ export class RouteManager {
   }
 
   async handles() {
-    return Rx.Observable.from(this._handlerIdList())
-      .flatMap((handlerId) => this._handledUrlListFor({handlerId}))
-      .reduce((acc, handlerUrlArray) => [...acc, ...handlerUrlArray], [])
-      .reduce((acc, url) => [...acc, ...url], [])
-      .toPromise();
+    const urlListPerHandler = await Promise.all(this._handlerIdList()
+      .map((handlerId) => this._handledUrlListFor({handlerId})));
+    return urlListPerHandler.reduce((acc, urlList) => [...acc, ...urlList], []);
   }
   async handle({url}) {
     return Rx.Observable.from(this._handlerIdList())
@@ -41,7 +39,6 @@ export class RouteManager {
         return this._handleUrlVia({url, handlerId: handler.handlerId});
       })
       .toPromise();
-      // .map(y => { debugger; return y;})
   }
 
   /* Private operations */

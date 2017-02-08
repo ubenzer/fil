@@ -13,8 +13,7 @@ const urlToPath = ({url}) => {
   if (url[0] === "/") {
     url = url.substr(1);
   }
-  const p = replace("/", path.sep, url);
-  return {p};
+  return replace("/", path.sep, url);
 };
 
 const addPostfixToPath = ({originalPath, postfix}) => {

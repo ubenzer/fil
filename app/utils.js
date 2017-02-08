@@ -18,7 +18,10 @@ const requireUncached = (module) => {
   return require(module);
 };
 
-export {requireUncached, getFoldersIn, recursiveReaddir, fsPromise};
+// https://gist.github.com/spion/8c9d8556697ed61108177164e90fb50d
+const translateError = (e) => e;
+
+export {requireUncached, getFoldersIn, recursiveReaddir, fsPromise, translateError};
 
 
 

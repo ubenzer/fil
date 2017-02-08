@@ -1,7 +1,7 @@
 import Rx from 'rxjs/Rx';
 import chokidar from 'chokidar';
 import path from "path";
-import {postPath} from "../index";
+import {postPath, postSubfolder} from "../index";
 import {fsPromise} from "../../app/utils";
 import {rawContentToPostObject} from "../utils/post";
 import globby from "globby";
@@ -12,6 +12,7 @@ export const post = {
   childrenWatcher$: ({id}) => (
     chokidar$(path.join(postPath, idToPath({id})), {
       ignored: ["**/.*", "index.md", "**/"],
+      ignoreInitial: true,
       depth: 3
     })
   ),
@@ -23,9 +24,9 @@ export const post = {
     })
     .then(files => (
       files.map(file => {
-        const p = path.join(p, file);
-        const childId = pathToIdPart({p});
-        return isPathImage({p}) ? `image@${childId}` : `file@${childId}`;
+        const childPath = path.join(p, file);
+        const childId = pathToIdPart({p: childPath});
+        return isPathImage({p: childPath}) ? `image@${postSubfolder}/${childId}` : `file@${postSubfolder}/${childId}`;
       })
     ));
   },

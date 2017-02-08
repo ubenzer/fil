@@ -8,13 +8,14 @@ import chokidar from 'chokidar';
 import {image} from "./contentTypes/image";
 import {file} from "./contentTypes/file";
 import {scaledImage} from "./contentTypes/scaledImage";
+import {binaryPassthroughHandler} from "./routes/postAttachmentPassthroughHandler";
 
 const project = {
   contentTypes() {
     return {posts: postCollection, post, file, image, scaledImage};
   },
   routeHandlers() {
-    return {singlePostHandler, recentPostsCollectionHandler};
+    return {singlePostHandler, recentPostsCollectionHandler, binaryPassthroughHandler};
   },
   outPath() { return "./dist"; },
   cachePath() { return "./cache"; },
@@ -35,8 +36,9 @@ const project = {
   }
 };
 const contentPath = "contents";
-const postPath = path.join(contentPath, "post");
+const postSubfolder = "post";
+const postPath = path.join(contentPath, postSubfolder);
 const templatePath = path.join("templates");
 
-export {project, contentPath, postPath, templatePath};
+export {project, contentPath, postSubfolder, postPath, templatePath};
 export default project;
