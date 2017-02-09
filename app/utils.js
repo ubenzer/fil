@@ -18,10 +18,18 @@ const requireUncached = (module) => {
   return require(module);
 };
 
+const chunk = ({array, chunkSize}) => {
+  const tbReturned = [];
+  for (let i = 0; i < array.length; i += chunkSize) {
+    tbReturned.push(array.slice(i, i + chunkSize));
+  }
+  return tbReturned;
+};
+
 // https://gist.github.com/spion/8c9d8556697ed61108177164e90fb50d
 const translateError = (e) => e;
 
-export {requireUncached, getFoldersIn, recursiveReaddir, fsPromise, translateError};
+export {requireUncached, getFoldersIn, recursiveReaddir, fsPromise, chunk, translateError};
 
 
 

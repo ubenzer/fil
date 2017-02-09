@@ -1,12 +1,12 @@
 import path from "path";
-import {extractDimensionFromPath, idToPath, pathToIdPart} from "../utils/id";
+import {fromGeneratedImagePath, idToPath, pathToIdPart} from "../utils/id";
 import {resizeByWidth} from "../utils/image";
 import {contentPath} from "../index";
 
 export const scaledImage = {
   contentArguments: async ({id, project}) => {
     const p = idToPath({id});
-    const {dimension, originalPath} = extractDimensionFromPath({p});
+    const {dimension, originalPath} = fromGeneratedImagePath({p});
     const sourceId = `image@${pathToIdPart({p: originalPath})}`;
 
     const originalImage = await project.valueOf({id: sourceId});

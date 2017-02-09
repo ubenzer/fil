@@ -1,4 +1,4 @@
-import {fsPromise} from "../utils";
+import {chunk, fsPromise} from "../utils";
 import path from "path";
 
 export class StaticRenderer {
@@ -7,21 +7,42 @@ export class StaticRenderer {
   }
 
   async render() {
-    const urlList = await this._project.handles();
+    const urlListPerHandler = await this._project.handledUrlsPerHandler();
+    const handlerIdBatches = chunk({array: Object.keys(urlListPerHandler), chunkSize: 5});
 
-    // render pages one by one
-    for (const url of urlList) {
-      const {headers, body} = await this._project.handle({url});
-      const ext = path.extname(url);
-      let pathToWrite = path.join(this._project.outPath(), url);
+    for (const handlerIdBatch of handlerIdBatches) {
+      await Promise.all(
+        handlerIdBatch.map(async (handlerId) => {
+          const urlBatches = chunk({array: urlListPerHandler[handlerId], chunkSize: 1});
 
-      if (ext.length === 0 && headers["Content-Type"].indexOf("text/html") > -1) {
-        pathToWrite = path.join(pathToWrite, "index.html");
-      }
-
-      const headersFile = `${pathToWrite}.headers`;
-      await fsPromise.outputFileAsync(pathToWrite, body);
-      await fsPromise.outputJsonAsync(headersFile, headers);
+          for (const batch of urlBatches) {
+            await Promise.all(
+              batch.map(url => (
+                this._project.handle({url})
+                  .then(({headers, body}) => (
+                    this._renderSingle({url, headers, body})
+                  ))
+                  .catch(console.log)
+              ))
+            );
+          }
+        })
+      );
     }
+  }
+
+  async _renderSingle({url, headers, body}) {
+    const ext = path.extname(url);
+    let pathToWrite = path.join(this._project.outPath(), url);
+
+    if (ext.length === 0 && headers["Content-Type"].indexOf("text/html") > -1) {
+      pathToWrite = path.join(pathToWrite, "index.html");
+    }
+
+    const headersFile = `${pathToWrite}.headers`;
+    return Promise.all([
+      fsPromise.outputFileAsync(pathToWrite, body),
+      fsPromise.outputJsonAsync(headersFile, headers)
+    ]);
   }
 }

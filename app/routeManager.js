@@ -1,4 +1,3 @@
-import Rx from 'rxjs/Rx';
 import {Project} from "./project";
 
 export class RouteManager {
@@ -16,29 +15,30 @@ export class RouteManager {
     };
   }
 
-  async handles() {
+  async handledUrlsPerHandler() {
+    const handlerList = this._handlerIdList();
+    const urlListPerHandler = await Promise.all(handlerList.map((handlerId) => this._handledUrlListFor({handlerId})));
+
+    return handlerList.reduce((acc, handlerId, index) => ({[handlerId]: urlListPerHandler[index], ...acc}), {});
+  }
+
+  async handledUrls() {
     const urlListPerHandler = await Promise.all(this._handlerIdList()
       .map((handlerId) => this._handledUrlListFor({handlerId})));
     return urlListPerHandler.reduce((acc, urlList) => [...acc, ...urlList], []);
   }
+
   async handle({url}) {
-    return Rx.Observable.from(this._handlerIdList())
-      .flatMap((handlerId) => Promise.all([this._handledUrlListFor({handlerId}), handlerId]))
-      .map(([handledUrlArray, handlerId]) => ({handledUrlArray, handlerId}))
-      .filter((handler) => handler.handledUrlArray.indexOf(url) > -1)
-      .reduce((acc, aHandlerObj) => [...acc, aHandlerObj], [])
-      .flatMap(handlerUrlLookupArray => {
-        if (handlerUrlLookupArray.length > 1) {
-          throw new Error(`"${url}" is handled by ${handlerUrlLookupArray.length} handlers: 
-            ${handlerUrlLookupArray.map(h => h.handlerId).join(",")}` )
-        }
-        if (handlerUrlLookupArray.length === 0) {
-          throw new Error(`"${url}" is not handled by a route handler`)
-        }
-        const handler = handlerUrlLookupArray[0];
-        return this._handleUrlVia({url, handlerId: handler.handlerId});
-      })
-      .toPromise();
+    const handledUrlsPerHandler = await this.handledUrlsPerHandler();
+    const handlersIdsForUrl = Object.keys(handledUrlsPerHandler)
+      .filter(handlerId => handledUrlsPerHandler[handlerId].indexOf(url) > -1);
+
+    if (handlersIdsForUrl.length !== 1) {
+      throw new Error(`"${url}" is handled by ${handlersIdsForUrl.length} handlers: 
+        ${handlersIdsForUrl.join(",")}`);
+    }
+
+    return this._handleUrlVia({url, handlerId: handlersIdsForUrl[0]});
   }
 
   /* Private operations */

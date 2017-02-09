@@ -1,9 +1,7 @@
-import {addPostfixToPath, idToPath, idToType, isPathImage, urlToPath} from "../utils/id";
+import {fromGeneratedImagePath, idToPath, idToType, isGeneratedImagePath, isPathImage, urlToPath} from "../utils/id";
 import * as path from "path";
 import {defaultHeadersFor} from "../utils/http";
 import {postSubfolder} from "../index";
-
-const scaledImagePostfix = ".scaled";
 
 const binaryPassthroughHandler = {
   async handlesArguments({project}) {
@@ -21,21 +19,19 @@ const binaryPassthroughHandler = {
     };
   },
   async handles({attachmentIds, scaledImageIds}) {
-    const attachmentUrls = attachmentIds.map(id => idToPath({id}));
-    const scaledImageUrls = scaledImageIds.map(id => {
-      const p = idToPath({id});
-      return addPostfixToPath({originalPath: p, postfix: scaledImagePostfix});
-    });
-    // we get rid of post part of id (--->post<---/2010/05/finaller/finaller-500.scaled.webp)
-    return [...attachmentUrls, ...scaledImageUrls].map(url => url.substr(postSubfolder.length));
+    return [...attachmentIds, ...scaledImageIds]
+      .map(id => idToPath({id}))
+      // we get rid of post part of id (--->post<---/2010/05/finaller/finaller-500.scaled.webp)
+      .map(url => url.substr(postSubfolder.length));
   },
   async handle({project, url}) {
     const p = urlToPath({url});
-    const ext = path.extname(p);
     const isImage = isPathImage({p});
-    const isScaledImage = p.endsWith(`${scaledImagePostfix}${ext}`);
+    const isScaledImage = isGeneratedImagePath({p});
     const type = isImage ? (isScaledImage ? "scaledImage" : "image") : "file";
-    const value = await project.valueOf({id: `${type}@${postSubfolder}/${p}`});
+
+    const id = `${type}@${postSubfolder}/${p}`;
+    const value = await project.valueOf({id});
 
     return {
       headers: defaultHeadersFor({url}),

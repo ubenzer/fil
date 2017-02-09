@@ -10,7 +10,7 @@ export class DynamicRenderer {
   async handleRequest(request, response) {
     const url = request.url;
 
-    const handledUrlList = await this._project.handles().catch(translateError);
+    const handledUrlList = await this._project.handledUrls().catch(translateError);
     if (handledUrlList instanceof Error) {
       console.error(handledUrlList);
       response.writeHead(500);
@@ -38,7 +38,7 @@ export class DynamicRenderer {
     try {
       const generatedPage = await this._project.handle({url}).catch(translateError);
       if (generatedPage instanceof Error) {
-        console.error(handledUrlList);
+        console.error(generatedPage);
         response.writeHead(500);
         response.end("500 - Check console");
         return;

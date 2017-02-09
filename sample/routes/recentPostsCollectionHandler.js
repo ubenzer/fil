@@ -1,15 +1,5 @@
-import ReactDOMServer from 'react-dom/server';
-import path from "path";
-import React from "react";
 import {defaultHeadersFor} from "../utils/http";
-
-const chunk = ({array, chunkSize}) => {
-  const tbReturned = [];
-  for (let i = 0; i < array.length; i += chunkSize) {
-    tbReturned.push(array.slice(i, i + chunkSize));
-  }
-  return tbReturned;
-};
+import {chunk} from "../../app/utils";
 
 const calculatePagination = ({posts}) => {
   const paginatedContentIds = chunk({array: posts, chunkSize: 10});
@@ -33,7 +23,7 @@ const recentPostsCollectionHandler = {
 
     return paginatedPostCollection.map(({isFirstPage}, index) => `/${isFirstPage ? "" : index}`);
   },
-  async handle({utils, project, url}) {
+  async handle({project, url}) {
     const pageNumber = +(url.substr(1) || 1) - 1;
     const posts = (await project.metaOf({id: "posts"})).children;
     const postsInPage = calculatePagination({posts})[pageNumber];

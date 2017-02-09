@@ -5,6 +5,7 @@
     ["transform-runtime", {
       "polyfill": false,
       "regenerator": true
-    }]
+    }],
+    ["transform-object-rest-spread", { "useBuiltIns": true }]
   ]
 }

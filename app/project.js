@@ -11,7 +11,8 @@ export class Project {
   }
 
   // Route related stuff
-  async handles() { return this._routeManager.handles(); }
+  async handledUrlsPerHandler() { return this._routeManager.handledUrlsPerHandler(); }
+  async handledUrls() { return this._routeManager.handledUrls(); }
   async handle({url}) { return this._routeManager.handle({url}); }
 
   // Content related stuff
