@@ -13,9 +13,11 @@
     "browser-sync": "^2.18.7",
     "chokidar": "^1.6.1",
     "deep-eql": "^2.0.1",
+    "dot-prop": "^4.1.0",
     "front-matter": "^2.1.2",
     "fs-extra": "^2.0.0",
     "globby": "^6.1.0",
+    "larvitslugify": "^0.10.10",
     "livereload": "^0.6.0",
     "markdown-it": "^8.2.2",
     "mime-types": "^2.1.14",
@@ -26,6 +28,7 @@
     "recursive-readdir": "^2.1.0",
     "replaceall": "^0.1.6",
     "rxjs": "^5.1.0",
+    "sanitize-filename": "^1.6.1",
     "sharp": "^0.17.1"
   },
   "devDependencies": {

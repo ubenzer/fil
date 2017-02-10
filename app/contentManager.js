@@ -1,7 +1,7 @@
 import {Project} from "./project";
 import Rx from 'rxjs/Rx';
-import * as path from "path";
-import {fsPromise} from "./utils";
+import * as dotProp from 'dot-prop';
+import {fsPromise, pathForCacheItem} from "./utils";
 
 export class ContentManager {
   constructor({project}) {
@@ -37,9 +37,20 @@ export class ContentManager {
 
     const cachedContent = this._cache.contents[id];
 
-    if (cachedContent.isBinary) {
-      return await fsPromise.readFileAsync(cachedContent.content);
+    if (cachedContent instanceof Object) {
+      const binaryFields = cachedContent.content[ContentManager.binaryFieldDesriptorKey];
+      const binaryPaths = binaryFields.map(bf => {
+        const cachePath = this._project.cachePath();
+        return pathForCacheItem({cachePath, id, itemKey: bf});
+      });
+
+      const binaryDataArr = await Promise.all(binaryPaths.map(bp => fsPromise.readFileAsync(bp)));
+
+      binaryDataArr.forEach((bd, idx) => {
+        dotProp.set(cachedContent.content, binaryFields[idx], bd);
+      });
     }
+
     return cachedContent.content;
   }
 
@@ -51,8 +62,6 @@ export class ContentManager {
   _ensureCacheEntryFor({id}) {
     if (!this._cache.contents[id]) {
       this._cache.contents[id] = {
-        isBinary: null,
-
         content: null,
         contentSubscription: null,
         contentArgs: null,
@@ -88,18 +97,24 @@ export class ContentManager {
 
     const newContent = await cachedContent.fn.content(newArgs);
     cachedContent.contentArgs = newArgs;
-    cachedContent.isBinary = newContent instanceof Buffer;
-    if (cachedContent.isBinary) {
-      const cachePath = this._project.cachePath();
-      await fsPromise.ensureDirAsync(cachePath);
 
-      const filePath = path.join(cachePath, id); // TODO sanitize id properly first
-      await fsPromise.outputFileAsync(filePath, newContent);
+    if (cachedContent instanceof Object) {
+      const binaryFields = cachedContent.fn.binaryContentKeys || [];
+      const binaryData = binaryFields
+        .map(bf => ({fieldName: bf, fieldValue: dotProp.get(newContent, bf)}))
+        .filter(bdo => !!bdo.fieldValue);
 
-      cachedContent.content = filePath;
-    } else {
-      cachedContent.content = newContent;
+      binaryData.map(({fieldName}) => dotProp.delete(newContent, fieldName));
+      newContent[ContentManager.binaryFieldDesriptorKey] = binaryData.map(bdo => bdo.fieldName);
+
+      await Promise.all(binaryData.map(({fieldName, fieldValue}) => {
+        const cachePath = this._project.cachePath();
+        const filePath = pathForCacheItem({cachePath, id, itemKey: fieldName});
+        return fsPromise.outputFileAsync(filePath, fieldValue);
+      }));
     }
+
+    cachedContent.content = newContent;
 
     if (!cachedContent.contentSubscription && cachedContent.fn.contentWatcher$) {
       cachedContent.contentSubscription = cachedContent.fn.contentWatcher$(newArgs)
@@ -115,7 +130,6 @@ export class ContentManager {
 
     cachedContent.contentArgs = null;
     cachedContent.content = null;
-    cachedContent.isBinary = null;
     if (cachedContent.contentSubscription) {
       cachedContent.contentSubscription.unsubscribe();
       cachedContent.contentSubscription = null;
@@ -191,3 +205,4 @@ export class ContentManager {
 ContentManager.defaultChildrenCalculator = async () => ({});
 ContentManager.defaultChildrenArguments = async ({id}) => ({id});
 ContentManager.defaultContentArguments = async ({id}) => ({id});
+ContentManager.binaryFieldDesriptorKey = "_binaryFields";
