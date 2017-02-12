@@ -2,7 +2,7 @@ import Rx from 'rxjs/Rx';
 import chokidar from 'chokidar';
 import path from "path";
 import {postPath, postSubfolder} from "../index";
-import {fsPromise} from "../../app/utils";
+import {fsPromise} from "../../app/utils/misc";
 import {rawContentToPostObject} from "../utils/post";
 import globby from "globby";
 import {idToPath, isPathImage, pathToIdPart} from "../utils/id";

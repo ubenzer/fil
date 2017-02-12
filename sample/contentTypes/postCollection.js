@@ -1,6 +1,6 @@
 import path from "path";
 import {postPath} from "../index";
-import {getFoldersIn} from "../../app/utils";
+import {getFoldersIn} from "../../app/utils/misc";
 import {chokidar$} from "../utils/chokidar";
 
 export const postCollection = {

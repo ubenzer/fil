@@ -4,7 +4,6 @@ import {resizeByWidth} from "../utils/image";
 import {contentPath} from "../index";
 
 export const scaledImage = {
-  binaryContentKeys: ["content"],
   contentArguments: async ({id, project}) => {
     const p = idToPath({id});
     const {dimension, originalPath} = fromGeneratedImagePath({p});

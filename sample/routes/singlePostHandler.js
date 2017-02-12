@@ -1,6 +1,6 @@
 import path from "path";
 import React from "react";
-import {requireUncached} from "../../app/utils";
+import {requireUncached} from "../../app/utils/misc";
 import {templatePath} from "../index";
 import {render} from "../utils/template";
 import {defaultHeadersFor} from "../utils/http";

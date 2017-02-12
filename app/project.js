@@ -27,6 +27,14 @@ export class Project {
     return this._contentManager.valueOf({id});
   }
 
+  async persistCache() {
+    return this._contentManager.persistCache();
+  }
+
+  async loadCache() {
+    return this._contentManager.loadCache();
+  }
+
   watcher$() {
     return Rx.Observable.merge(
       this._contentManager.watcher$(),

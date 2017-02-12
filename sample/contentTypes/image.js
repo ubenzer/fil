@@ -8,7 +8,6 @@ const widths = [500, 1000, 1500, 2000];
 
 const watcher$ = ({id}) => chokidar$(path.join(contentPath, idToPath({id})), {ignoreInitial: true});
 export const image = {
-  binaryContentKeys: ["content"],
   childrenWatcher$: watcher$,
   children: async ({id}) => {
     const imagePath = idToPath({id});

@@ -1,11 +1,10 @@
 import path from "path";
 import {contentPath} from "../index";
-import {fsPromise} from "../../app/utils";
+import {fsPromise} from "../../app/utils/misc";
 import {idToPath} from "../utils/id";
 import {chokidar$} from "../utils/chokidar";
 
 export const file = {
-  binaryContentKeys: ["content"],
   content: async ({id}) => {
     const p = idToPath({id});
     const content = await fsPromise.readFileAsync(path.join(contentPath, p));

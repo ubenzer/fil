@@ -18,4 +18,12 @@ export class ProjectRunner {
       project: this._project
     }).render();
   }
+
+  async persistCache() {
+    return this._project.persistCache();
+  }
+
+  async loadCache() {
+    return this._project.loadCache();
+  }
 }

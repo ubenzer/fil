@@ -1,6 +1,6 @@
 import http from "http";
 import browserSync from "browser-sync";
-import {translateError} from "../utils";
+import {translateError} from "../utils/misc";
 
 export class DynamicRenderer {
   constructor({project}) {

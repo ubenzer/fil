@@ -1,4 +1,4 @@
-import {chunk, fsPromise} from "../utils";
+import {chunk, fsPromise} from "../utils/misc";
 import path from "path";
 
 export class StaticRenderer {

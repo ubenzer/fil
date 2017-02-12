@@ -1,7 +1,8 @@
 import {Project} from "./project";
 import Rx from 'rxjs/Rx';
-import * as dotProp from 'dot-prop';
-import {fsPromise, pathForCacheItem} from "./utils";
+import {fsPromise, translateError} from "./utils/misc";
+import * as path from "path";
+import {binaryItemsFromDisk, binaryItemsToDisk, clearBinaryItemsFromDisk} from "./utils/binaryCacheHelpers";
 
 export class ContentManager {
   constructor({project}) {
@@ -34,28 +35,52 @@ export class ContentManager {
 
   async valueOf({id}) {
     await this._ensureCachedContentFor({id});
-
-    const cachedContent = this._cache.contents[id];
-
-    if (cachedContent instanceof Object) {
-      const binaryFields = cachedContent.content[ContentManager.binaryFieldDesriptorKey];
-      const binaryPaths = binaryFields.map(bf => {
-        const cachePath = this._project.cachePath();
-        return pathForCacheItem({cachePath, id, itemKey: bf});
-      });
-
-      const binaryDataArr = await Promise.all(binaryPaths.map(bp => fsPromise.readFileAsync(bp)));
-
-      binaryDataArr.forEach((bd, idx) => {
-        dotProp.set(cachedContent.content, binaryFields[idx], bd);
-      });
-    }
-
-    return cachedContent.content;
+    const cachedContent = this._cache.contents[id].content;
+    const cachePath = this._project.cachePath();
+    const accountingKey = ContentManager.binaryFieldDesriptorKey;
+    return binaryItemsFromDisk({
+      id,
+      type: ContentManager.binaryCacheTypes.content,
+      json: cachedContent,
+      cachePath,
+      accountingKey
+    });
   }
 
   watcher$() {
     return this._allContentsChangeObservable;
+  }
+
+  async persistCache() {
+    const cacheContentsWithoutFns =
+      Object.keys(this._cache.contents)
+        .map(id => {
+          const cacheItemCopy = {...this._cache.contents[id]};
+          cacheItemCopy.fn = null;
+          cacheItemCopy.contentSubscription = null;
+          cacheItemCopy.childrenSubscription = null;
+          return {id, cacheItemCopy};
+        })
+        .reduce((acc, {id, cacheItemCopy}) =>
+          ({[id]: cacheItemCopy, ...acc})
+        , {});
+    const cache = {contents: cacheContentsWithoutFns};
+    const filePath = path.join(this._project.cachePath(), "cache.json");
+    return fsPromise.outputJsonAsync(filePath, cache);
+  }
+
+  async loadCache() {
+    const filePath = path.join(this._project.cachePath(), "cache.json");
+    const json = await fsPromise.readJsonAsync(filePath).catch(translateError);
+    if (json instanceof Error) {
+      // means we have no cache at all.
+      return;
+    }
+
+    await Promise.all(Object.keys(this._cache.contents)
+      .map(id => this._deleteCacheEntryFor({id})));
+
+    this._cache = json;
   }
 
   /* Private operations */
@@ -83,38 +108,44 @@ export class ContentManager {
   async _ensureCachedContentFor({id}) {
     this._ensureCacheEntryFor({id});
 
+    const accountingKey = ContentManager.binaryFieldDesriptorKey;
+    const cachePath = this._project.cachePath();
+
     const cachedContent = this._cache.contents[id];
 
     // check arguments first to see if we already have a calculated value
-    const contentArguments = cachedContent.fn.contentArguments || ContentManager.defaultContentArguments;
-    const newArgs = await contentArguments({project: this._project, id});
-    const areArgsSame = Project._compareArgumentCache({newArgs, oldArgs: cachedContent.contentArgs});
+    const contentArgumentsFn = cachedContent.fn.contentArguments || ContentManager.defaultContentArguments;
 
-    if (cachedContent.contentArgs !== null && areArgsSame) {
+    const oldArgs = await binaryItemsFromDisk({
+      id,
+      type: ContentManager.binaryCacheTypes.contentArgs,
+      json: cachedContent.contentArgs,
+      cachePath,
+      accountingKey
+    });
+    const newArgs = await contentArgumentsFn({project: this._project, id});
+    const areArgsSame = Project._compareArgumentCache({newArgs, oldArgs});
+
+    if (cachedContent.content !== null && areArgsSame) {
       return;
     }
-    //console.log(`Content Cache miss for: ${id}`);
+    console.log(`Content Cache miss for: ${id}`);
 
-    const newContent = await cachedContent.fn.content(newArgs);
-    cachedContent.contentArgs = newArgs;
-
-    if (cachedContent instanceof Object) {
-      const binaryFields = cachedContent.fn.binaryContentKeys || [];
-      const binaryData = binaryFields
-        .map(bf => ({fieldName: bf, fieldValue: dotProp.get(newContent, bf)}))
-        .filter(bdo => !!bdo.fieldValue);
-
-      binaryData.map(({fieldName}) => dotProp.delete(newContent, fieldName));
-      newContent[ContentManager.binaryFieldDesriptorKey] = binaryData.map(bdo => bdo.fieldName);
-
-      await Promise.all(binaryData.map(({fieldName, fieldValue}) => {
-        const cachePath = this._project.cachePath();
-        const filePath = pathForCacheItem({cachePath, id, itemKey: fieldName});
-        return fsPromise.outputFileAsync(filePath, fieldValue);
-      }));
-    }
-
-    cachedContent.content = newContent;
+    let newContent = await cachedContent.fn.content(newArgs);
+    cachedContent.contentArgs = await binaryItemsToDisk({
+      id,
+      type: ContentManager.binaryCacheTypes.contentArgs,
+      json: newArgs,
+      cachePath,
+      accountingKey
+    });
+    cachedContent.content = await binaryItemsToDisk({
+      id,
+      type: ContentManager.binaryCacheTypes.content,
+      json: newContent,
+      cachePath,
+      accountingKey
+    });
 
     if (!cachedContent.contentSubscription && cachedContent.fn.contentWatcher$) {
       cachedContent.contentSubscription = cachedContent.fn.contentWatcher$(newArgs)
@@ -122,11 +153,28 @@ export class ContentManager {
     }
   }
 
-  _contentSubscriptionFnFor({id}) {
+  async _contentSubscriptionFnFor({id}) {
     console.log(`Content changed for: ${id}`);
     this._ensureCacheEntryFor({id});
 
     const cachedContent = this._cache.contents[id];
+
+    const cachePath = this._project.cachePath();
+    const accountingKey = ContentManager.binaryFieldDesriptorKey;
+    await clearBinaryItemsFromDisk({
+      id,
+      type: ContentManager.binaryCacheTypes.content,
+      json: cachedContent.content,
+      cachePath,
+      accountingKey
+    });
+    await clearBinaryItemsFromDisk({
+      id,
+      type: ContentManager.binaryCacheTypes.contentArgs,
+      json: cachedContent.contentArgs,
+      cachePath,
+      accountingKey
+    });
 
     cachedContent.contentArgs = null;
     cachedContent.content = null;
@@ -139,17 +187,28 @@ export class ContentManager {
     this._allContentsChangeSubscriber.next();
   }
 
-  _childrenSubscriptionFnFor({id}) {
+  async _childrenSubscriptionFnFor({id}) {
     console.log(`Children changed for: ${id}`);
     this._ensureCacheEntryFor({id});
 
     const cachedContent = this._cache.contents[id];
 
     if (cachedContent.children) {
-      cachedContent.children.forEach((c) => {
+      await Promise.all(cachedContent.children.map((c) => {
         this._deleteCacheEntryFor({id: c});
-      });
+      }));
     }
+
+    const cachePath = this._project.cachePath();
+    const accountingKey = ContentManager.binaryFieldDesriptorKey;
+    await clearBinaryItemsFromDisk({
+      id,
+      type: ContentManager.binaryCacheTypes.childrenArgs,
+      json: cachedContent.childrenArgs,
+      cachePath,
+      accountingKey
+    });
+
     cachedContent.childrenArgs = null;
     cachedContent.children = null;
     if (cachedContent.childrenSubscription) {
@@ -161,7 +220,7 @@ export class ContentManager {
     this._allContentsChangeSubscriber.next();
   }
 
-  _deleteCacheEntryFor({id}) {
+  async _deleteCacheEntryFor({id}) {
     const cachedContent = this._cache.contents[id];
     if (!cachedContent) { return; }
     if (cachedContent.childrenSubscription) {
@@ -171,29 +230,73 @@ export class ContentManager {
       cachedContent.contentSubscription.unsubscribe();
     }
     if (cachedContent.children) {
-      cachedContent.children.forEach(c => this._deleteCacheEntryFor(c));
+      await Promise.all(cachedContent.children.map(c => this._deleteCacheEntryFor(c)));
     }
+
+    const cachePath = this._project.cachePath();
+    const accountingKey = ContentManager.binaryFieldDesriptorKey;
+    await Promise.all([
+      clearBinaryItemsFromDisk({
+        id,
+        type: ContentManager.binaryCacheTypes.content,
+        json: cachedContent.content,
+        cachePath,
+        accountingKey
+      }),
+      clearBinaryItemsFromDisk({
+        id,
+        type: ContentManager.binaryCacheTypes.contentArgs,
+        json: cachedContent.contentArgs,
+        cachePath,
+        accountingKey
+      }),
+      clearBinaryItemsFromDisk({
+        id,
+        type: ContentManager.binaryCacheTypes.childrenArgs,
+        json: cachedContent.childrenArgs,
+        cachePath,
+        accountingKey
+      })
+    ]);
+
     delete this._cache.contents[id];
   }
 
   async _ensureCachedChildrenFor({id}) {
     this._ensureCacheEntryFor({id});
 
+    const accountingKey = ContentManager.binaryFieldDesriptorKey;
+    const cachePath = this._project.cachePath();
+
     const cachedContent = this._cache.contents[id];
 
     // check arguments first to see if we already have a calculated value
     const childrenArguments = cachedContent.fn.childrenArguments || ContentManager.defaultChildrenArguments;
-    const newArgs = await childrenArguments({project: this._project, id});
-    const areArgsSame = Project._compareArgumentCache({newArgs, oldArgs: cachedContent.childrenArgs});
 
-    if (cachedContent.childrenArgs !== null && areArgsSame) {
+    const oldArgs = await binaryItemsFromDisk({
+      id,
+      type: ContentManager.binaryCacheTypes.childrenArgs,
+      json: cachedContent.childrenArgs,
+      cachePath,
+      accountingKey
+    });
+    const newArgs = await childrenArguments({project: this._project, id});
+    const areArgsSame = Project._compareArgumentCache({newArgs, oldArgs});
+
+    if (cachedContent.children !== null && areArgsSame) {
       return;
     }
     //console.log(`Child Cache miss for: ${id}`);
 
     const childrenCalculatorFn = cachedContent.fn.children || ContentManager.defaultChildrenCalculator;
     const newChildren = await childrenCalculatorFn(newArgs);
-    cachedContent.childrenArgs = newArgs;
+    cachedContent.childrenArgs = await binaryItemsToDisk({
+      id,
+      type: ContentManager.binaryCacheTypes.childrenArgs,
+      json: newArgs,
+      cachePath,
+      accountingKey
+    });
     cachedContent.children = newChildren;
 
     if (!cachedContent.childrenSubscription && cachedContent.fn.childrenWatcher$) {
@@ -206,3 +309,8 @@ ContentManager.defaultChildrenCalculator = async () => ({});
 ContentManager.defaultChildrenArguments = async ({id}) => ({id});
 ContentManager.defaultContentArguments = async ({id}) => ({id});
 ContentManager.binaryFieldDesriptorKey = "_binaryFields";
+ContentManager.binaryCacheTypes = {
+  content: "content",
+  contentArgs: "contentArgs",
+  childrenArgs: "childrenArgs"
+};

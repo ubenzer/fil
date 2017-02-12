@@ -1,5 +1,5 @@
 import {defaultHeadersFor} from "../utils/http";
-import {chunk} from "../../app/utils";
+import {chunk} from "../../app/utils/misc";
 
 const calculatePagination = ({posts}) => {
   const paginatedContentIds = chunk({array: posts, chunkSize: 10});
