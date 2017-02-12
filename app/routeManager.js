@@ -1,4 +1,7 @@
 import {Project} from "./project";
+import {binaryItemsFromDisk, binaryItemsToDisk} from "./utils/binaryCacheHelpers";
+import * as path from "path";
+import {fsPromise, translateError} from "./utils/misc";
 
 export class RouteManager {
   constructor({project}) {
@@ -49,14 +52,25 @@ export class RouteManager {
 
   async _handledUrlListFor({handlerId}) {
     this._ensureHandler({handlerId});
+
+    const accountingKey = RouteManager.binaryFieldDesriptorKey;
+    const cachePath = this._project.cachePath();
+
     const handler = this._cache.handlers[handlerId];
     if (!handler) {
       throw new Error(`Handler with id ${handlerId} not found!`);
     }
 
     // check arguments first to see if we already have a calculated value
+    const oldArgs = await binaryItemsFromDisk({
+      id: handlerId,
+      type: RouteManager.binaryCacheTypes.handlesArgs,
+      json: handler.handlesArgs,
+      cachePath,
+      accountingKey
+    });
     const newArgs = await handler.instance.handlesArguments({project: this._project});
-    const areArgsSame = Project._compareArgumentCache({newArgs, oldArgs: handler.handlesArgs});
+    const areArgsSame = Project._compareArgumentCache({newArgs, oldArgs});
 
     if (!areArgsSame) {
       console.log(`Route Cache miss for: ${handlerId}`);
@@ -66,7 +80,13 @@ export class RouteManager {
       return handler.handles;
     }
     const newUrlList = await handler.instance.handles(newArgs);
-    handler.handlesArgs = newArgs;
+    handler.handlesArgs = await binaryItemsToDisk({
+      id: handlerId,
+      type: RouteManager.binaryCacheTypes.handlesArgs,
+      json: newArgs,
+      cachePath,
+      accountingKey
+    });
     handler.handles = newUrlList;
     return newUrlList;
   }
@@ -75,6 +95,33 @@ export class RouteManager {
     this._ensureHandler({handlerId});
     const handlerInstance = this._cache.handlers[handlerId].instance;
     return handlerInstance.handle({url, project: this._project});
+  }
+
+  async persistCache() {
+    const cacheHandlersWithoutFns =
+      Object.keys(this._cache.handlers)
+        .map(id => {
+          const cacheItemCopy = {...this._cache.handlers[id]};
+          cacheItemCopy.instance = null;
+          return {id, cacheItemCopy};
+        })
+        .reduce((acc, {id, cacheItemCopy}) =>
+            ({[id]: cacheItemCopy, ...acc})
+          , {});
+    const cache = {handlers: cacheHandlersWithoutFns};
+    const filePath = path.join(this._project.cachePath(), "routes.json");
+    return fsPromise.outputJsonAsync(filePath, cache);
+  }
+
+  async loadCache() {
+    const filePath = path.join(this._project.cachePath(), "routes.json");
+    const json = await fsPromise.readJsonAsync(filePath).catch(translateError);
+    if (json instanceof Error) {
+      // means we have no cache at all.
+      return;
+    }
+
+    this._cache = json;
   }
 
   /* Cache operations */
@@ -102,3 +149,8 @@ export class RouteManager {
     });
   }
 }
+RouteManager.binaryFieldDesriptorKey = "_binaryFields";
+RouteManager.binaryCacheTypes = {
+  handlesArgs: "handlesArgs"
+};
+

@@ -28,11 +28,17 @@ export class Project {
   }
 
   async persistCache() {
-    return this._contentManager.persistCache();
+    return Promise.all([
+      this._contentManager.persistCache(),
+      this._routeManager.persistCache(),
+    ]);
   }
 
   async loadCache() {
-    return this._contentManager.loadCache();
+    return Promise.all([
+      this._contentManager.loadCache(),
+      this._routeManager.loadCache(),
+    ]);
   }
 
   watcher$() {

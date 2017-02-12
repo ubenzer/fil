@@ -65,12 +65,12 @@ export class ContentManager {
           ({[id]: cacheItemCopy, ...acc})
         , {});
     const cache = {contents: cacheContentsWithoutFns};
-    const filePath = path.join(this._project.cachePath(), "cache.json");
+    const filePath = path.join(this._project.cachePath(), "contents.json");
     return fsPromise.outputJsonAsync(filePath, cache);
   }
 
   async loadCache() {
-    const filePath = path.join(this._project.cachePath(), "cache.json");
+    const filePath = path.join(this._project.cachePath(), "contents.json");
     const json = await fsPromise.readJsonAsync(filePath).catch(translateError);
     if (json instanceof Error) {
       // means we have no cache at all.
