@@ -46,10 +46,12 @@ if (argv.dynamic) {
 } else {
   projectRunner.loadCache()
     .then(() => {
-      projectRunner.generateStatic()
+      return projectRunner.generateStatic();
     })
     .catch((e) => {
       console.log(e);
-      process.exitCode = -1;
+    })
+    .then(() => {
+      process.kill(process.pid);
     });
 }
