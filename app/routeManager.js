@@ -96,9 +96,18 @@ export class RouteManager {
   }
 
   async persistCache() {
+    const cacheHandlersWithoutFns =
+      Object.keys(this._cache.handlers)
+        .map((id) => {
+          const cacheItemCopy = {...this._cache.handlers[id]}
+          cacheItemCopy.instance = null
+          return {cacheItemCopy, id}
+        })
+        .reduce((acc, {id, cacheItemCopy}) => ({[id]: cacheItemCopy, ...acc}), {})
+    const cache = {handlers: cacheHandlersWithoutFns}
     const filePath = path.join(this._project.cachePath(), "routes.json")
     // noinspection JSUnresolvedFunction
-    return fsPromise.outputJsonAsync(filePath, this._cache)
+    return fsPromise.outputJsonAsync(filePath, cache)
   }
 
   async loadCache() {

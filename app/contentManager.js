@@ -56,9 +56,20 @@ export class ContentManager {
   }
 
   async persistCache() {
+    const cacheContentsWithoutFns =
+      Object.keys(this._cache.contents)
+        .map((id) => {
+          const cacheItemCopy = {...this._cache.contents[id]}
+          cacheItemCopy.fn = null
+          cacheItemCopy.contentSubscription = null
+          cacheItemCopy.childrenSubscription = null
+          return {cacheItemCopy, id}
+        })
+        .reduce((acc, {id, cacheItemCopy}) => ({[id]: cacheItemCopy, ...acc}), {})
+    const cache = {contents: cacheContentsWithoutFns}
     const filePath = path.join(this._project.cachePath(), "contents.json")
     // noinspection JSUnresolvedFunction
-    return fsPromise.outputJsonAsync(filePath, this._cache)
+    return fsPromise.outputJsonAsync(filePath, cache)
   }
 
   disposeChangeListeners() {
