@@ -1,9 +1,10 @@
-import ReactDOMServer from 'react-dom/server';
-import Helmet from "react-helmet";
+import Helmet from "react-helmet"
+import ReactDOMServer from "react-dom/server"
 
 const render = ({jsx}) => {
-  const renderedPage = ReactDOMServer.renderToStaticMarkup(jsx);
-  const head = Helmet.rewind();
+  const renderedPage = ReactDOMServer.renderToStaticMarkup(jsx)
+  const head = Helmet.rewind()
+
   return `
     <!doctype html>
     <html ${head.htmlAttributes.toString()}>
@@ -16,7 +17,7 @@ const render = ({jsx}) => {
         ${renderedPage}
       </body>
     </html>
-  `;
-};
+  `
+}
 
-export {render};
+export {render}

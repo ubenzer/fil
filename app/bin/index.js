@@ -1,57 +1,49 @@
-import {Fil} from "../index"
-import path from "path";
-import parseArgs from "minimist";
-import 'source-map-support/register';
-import npid from 'npid';
-import fs from "fs-extra";
-import nodeCleanup from 'node-cleanup';
+import "source-map-support/register"
+import {ProjectRunner} from "../projectRunner"
+import exitHook from "async-exit-hook"
+import fs from "fs-extra"
+import npid from "npid"
+import parseArgs from "minimist"
+import path from "path"
 
-const argv = parseArgs(process.argv, {
-  boolean: ["dynamic", "force"]
-});
+/* eslint-disable no-console */
+console.info("=== Fil ===")
+console.info(`Running using node ${process.version}`)
 
-console.log( process.version);
+const argv = parseArgs(process.argv, {boolean: ["dynamic", "force", "no-cache"]})
 
-const projectRootFile = require(path.join(process.cwd(), "index.js")).default;
-const projectRunner = Fil.createProject({project: projectRootFile});
+const projectRootFile = require(path.join(process.cwd(), "index.js")).default
+const projectRunner = new ProjectRunner({
+  listenToChanges: argv.dynamic,
+  project: projectRootFile,
+  useCache: !argv["no-cache"]
+})
 
-let pid = null;
-try {
-  const pidFolder = path.join(process.cwd(), projectRootFile.cachePath());
-  fs.ensureDirSync(pidFolder);
-  pid = npid.create(path.join(pidFolder, "running.pid"), argv.force);
-} catch (err) {
-  console.log(err);
-  process.exit(-2);
-}
+const pidFolder = path.join(process.cwd(), projectRootFile.cachePath())
 
-nodeCleanup((exitCode, signal) => {
-  console.log("Persisting cache...");
+fs.ensureDirSync(pidFolder) // eslint-disable-line no-sync
+
+const pid = npid.create(path.join(pidFolder, "running.pid"), argv.force)
+
+exitHook((callback) => {
   projectRunner.persistCache()
-    .catch(console.error)
-    .then(() => {
-      pid.remove();
-      process.exitCode = 0;
-      process.kill(process.pid, signal);
-    });
-  nodeCleanup.uninstall();
-  return false;
-});
-
-if (argv.dynamic) {
-  projectRunner.loadCache()
-    .then(() => {
-      projectRunner.generateDynamic();
-    });
-} else {
-  projectRunner.loadCache()
-    .then(() => {
-      return projectRunner.generateStatic();
-    })
     .catch((e) => {
-      console.log(e);
+      console.error(e)
+      pid.remove()
+      callback()
     })
     .then(() => {
-      process.kill(process.pid);
-    });
-}
+      console.info("Bye!")
+      pid.remove()
+      callback()
+    })
+})
+
+projectRunner.init()
+  .then(() => {
+    if (argv.dynamic) {
+      return projectRunner.generateDynamic()
+    }
+    return projectRunner.generateStatic()
+  })
+  .catch(console.error)

@@ -1,33 +1,32 @@
-import path from "path";
-import {postPath} from "../index";
-import {getFoldersIn} from "../../app/utils/misc";
-import {chokidar$} from "../utils/chokidar";
+import {chokidar$} from "../utils/chokidar"
+import {getFoldersIn} from "../../app/utils/misc"
+import path from "path"
+import {postPath} from "../index"
 
 export const postCollection = {
-  childrenWatcher$: () => (
-    chokidar$(postPath, {
-      ignored: ["**/.*", "!**/"],
-      ignoreInitial: true,
-      depth: 3
-    })
-  ),
   children: async () => {
-    const years = await getFoldersIn(postPath);
+    const years = await getFoldersIn(postPath)
     const months = (await Promise.all(
-      years.map(year =>
+      years.map((year) =>
         getFoldersIn(path.join(postPath, year))
-          .then(months => months.map(month => ({year, month})))
+          .then((mnts) => mnts.map((m) => ({month: m, year})))
       )
-    )).reduce((acc, monthArray) => [...acc, ...monthArray], []);
+    )).reduce((acc, monthArray) => [...acc, ...monthArray], [])
 
     const posts = (await Promise.all(
       months.map(({year, month}) =>
         getFoldersIn(path.join(postPath, year, month))
-          .then(postIds => postIds.map(postId => ({year, month, postId})))
+          .then((postIds) => postIds.map((postId) => ({month, postId, year})))
       )
-    )).reduce((acc, postArray) => [...acc, ...postArray], []);
+    )).reduce((acc, postArray) => [...acc, ...postArray], [])
 
-    return posts.map(({year, month, postId}) => `post@${year}/${month}/${postId}`);
+    return posts.map(({year, month, postId}) => `post@${year}/${month}/${postId}`)
   },
+  childrenWatcher$: () =>
+    chokidar$(postPath, {
+      depth: 3,
+      ignoreInitial: true,
+      ignored: ["**/.*", "!**/"]
+    }),
   content: async () => ({})
-};
+}

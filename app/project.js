@@ -1,56 +1,91 @@
-import {RouteManager} from "./routeManager";
-import {ContentManager} from "./contentManager";
-import deepEql from "deep-eql";
-import Rx from 'rxjs/Rx';
+import {ContentManager} from "./contentManager"
+import {RouteManager} from "./routeManager"
+import Rx from "rxjs/Rx"
+import debugc from "debug"
+import deepEql from "deep-eql"
+import os from "os"
+import path from "path"
+import uuidV1 from "uuid/v1"
+
+const debug = debugc("fil:project")
 
 export class Project {
-  constructor({project}) {
-    this._project = project;
-    this._routeManager = new RouteManager({project: this});
-    this._contentManager = new ContentManager({project: this});
+  constructor({listenToChanges, project, useCache}) {
+    this._project = project
+    this._listenToChanges = listenToChanges
+    this._useCache = useCache
+    this._routeManager = new RouteManager({project: this})
+    this._contentManager = new ContentManager({project: this})
   }
 
-  // Route related stuff
-  async handledUrlsPerHandler() { return this._routeManager.handledUrlsPerHandler(); }
-  async handledUrls() { return this._routeManager.handledUrls(); }
-  async handle({url}) { return this._routeManager.handle({url}); }
-
-  // Content related stuff
-  async contentTypes() { // returns an array of registered types
-    return this._contentManager.contentTypes();
-  }
-  async metaOf({id}) { // returns all contents registered to a type
-    return this._contentManager.metaOf({id});
-  }
-
-  async valueOf({id}) {
-    return this._contentManager.valueOf({id});
-  }
-
-  async persistCache() {
-    return Promise.all([
-      this._contentManager.persistCache(),
-      this._routeManager.persistCache(),
-    ]);
-  }
-
-  async loadCache() {
+  /* init & dispose logic */
+  async initCache() {
+    if (!this._useCache) { return }
     return Promise.all([
       this._contentManager.loadCache(),
-      this._routeManager.loadCache(),
-    ]);
+      this._routeManager.loadCache()
+    ])
+  }
+  initChangeListeners() {
+    if (!this._listenToChanges) { return }
+    this._contentManager.initChangeListeners()
+  }
+  disposeChangeListeners() {
+    if (!this._listenToChanges) { return }
+    this._contentManager.disposeChangeListeners()
   }
 
+  /* Route related stuff */
+  async handledUrlsPerHandler() {
+    return this._routeManager.handledUrlsPerHandler()
+  }
+  async handledUrls() {
+    return this._routeManager.handledUrls()
+  }
+  async handle({url}) {
+    return this._routeManager.handle({url})
+  }
+
+  /* Content related stuff */
+  async contentTypes() {
+    // Returns an array of registered types
+    return this._contentManager.contentTypes()
+  }
+  async metaOf({id}) {
+    // / Returns all contents registered to a type
+    return this._contentManager.metaOf({id})
+  }
+  async valueOf({id}) {
+    return this._contentManager.valueOf({id})
+  }
+
+  /* Cache persistence */
+  async persistCache() {
+    if (!this._useCache) { return }
+    debug("Persisting cache")
+
+    return Promise.all([
+      this._contentManager.persistCache(),
+      this._routeManager.persistCache()
+    ])
+  }
+
+  /* The ultimate change detector */
   watcher$() {
+    if (!this._listenToChanges) { return Rx.Observable.empty() }
     return Rx.Observable.merge(
       this._contentManager.watcher$(),
       this._project.watcher$()
-    );
+    )
   }
 
-  outPath() { return this._project.outPath(); }
-  cachePath() { return this._project.cachePath(); }
+  /* Path resolving */
+  outPath() {
+    return this._project.outPath()
+  }
+  cachePath() {
+    if (this._useCache) { return this._project.cachePath() }
+    return path.join(os.tmpdir(), uuidV1())
+  }
 }
-Project._compareArgumentCache = ({newArgs, oldArgs}) => {
-  return deepEql(newArgs, oldArgs);
-};
+Project.compareArgumentCache = ({newArgs, oldArgs}) => deepEql(newArgs, oldArgs)

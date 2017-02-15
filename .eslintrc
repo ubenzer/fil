@@ -13,8 +13,8 @@
   ],
 
   "extends": [
-    "eslint:recommended",
-    "plugin:react/recommended"
+    "eslint:all",
+    "plugin:react/all"
   ],
 
   "parserOptions": {
@@ -28,6 +28,35 @@
   },
 
   "rules": {
-    "indent": ["error", 2]
+    "brace-style": [2, "1tbs", { "allowSingleLine": true }],
+    "capitalized-comments": "off",
+    "consistent-return": "off",
+    "dot-location": ["error", "property"],
+    "id-length": 0,
+    "indent": ["error", 2],
+    "max-len": ["error", 120],
+    "max-lines": ["error", 500],
+    "max-statements": ["error", 20],
+    "max-statements-per-line": ["error", {"max": 2}],
+    "newline-after-var": "off",
+    "newline-before-return": "off",
+    "no-magic-numbers": "off",
+    "no-plusplus": "off",
+    "no-underscore-dangle": ["error", {"allowAfterThis": true}],
+    "no-ternary": "off",
+    "multiline-ternary": "off",
+    "padded-blocks": ["error", "never"],
+    "prefer-destructuring": "off",
+    "react/no-danger": "off",
+    "react/jsx-filename-extension": "off",
+    "react/jsx-indent": ["error", 2],
+    "react/jsx-indent-props": ["error", 2],
+    "require-await": "off",
+    "semi": ["error", "never"],
+    "space-before-function-paren": [2, "never"],
+    "object-curly-newline": ["error", {"multiline": true}],
+    "object-property-newline": "off",
+    "one-var": ["error", "never"],
+    "quote-props": ["error", "consistent-as-needed"]
   }
 }

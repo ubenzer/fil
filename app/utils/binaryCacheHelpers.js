@@ -1,65 +1,72 @@
-import deepIterator from 'deep-iterator';
-import * as dotProp from "dot-prop-immutable";
-import * as path from "path";
-import sanitize from "sanitize-filename";
-import {fsPromise} from "./misc";
+// noinspection NpmUsedModulesInstalled
+import deepIterator from "deep-iterator"
+import dotProp from "dot-prop-immutable"
+import {fsPromise} from "./misc"
+import path from "path"
+import sanitize from "sanitize-filename"
+
+const pathForCacheItem = ({cachePath, id, type, keyPath}) => {
+  const idParts = id.split(/(?:\/|\\|\||@|:)+/)
+  const sanitizedPathParts = [...idParts, `${type}--${keyPath.join("--")}`]
+    .map((ip) => sanitize(ip, {replacement: "_"}))
+
+  return path.join(cachePath, ...sanitizedPathParts)
+}
 
 const binaryItemsToDisk = async ({id, type, json, cachePath, accountingKey}) => {
-  if (!json) { return json; }
+  if (!json) { return json }
 
+  // noinspection JSUnusedGlobalSymbols
   const iterator = deepIterator(json, {
     onlyLeaves: true,
     skipIteration: (node) => node.value instanceof Buffer
-  });
+  })
 
-  // determine paths to buffer typed keys
-  const binaryFields = [];
-  for (const {value, path} of iterator) {
+  // Determine paths to buffer typed keys
+  const binaryFields = []
+  for (const {path: p, value} of iterator) {
     if (value instanceof Buffer) {
-      binaryFields.push({value, path});
+      binaryFields.push({path: p, value})
     }
   }
+  const newJson = binaryFields.reduce((acc, {path: p}) => dotProp.delete(acc, p), json)
+  newJson[accountingKey] = binaryFields.map((bf) => bf.path)
 
-  const newJson = binaryFields.reduce((acc, {path}) => dotProp.delete(acc, path), json);
-  newJson[accountingKey] = binaryFields.map(bf => bf.path);
+  await Promise.all(binaryFields.map(({value, path: p}) => {
+    const filePath = pathForCacheItem({cachePath, id, keyPath: p, type})
+    // noinspection JSUnresolvedFunction
+    return fsPromise.outputFileAsync(filePath, value)
+  }))
 
-  await Promise.all(binaryFields.map(({value, path}) => {
-    const filePath = pathForCacheItem({cachePath, id, type, keyPath: path});
-    return fsPromise.outputFileAsync(filePath, value);
-  }));
-
-  return newJson;
-};
+  return newJson
+}
 
 const binaryItemsFromDisk = async ({id, type, json, cachePath, accountingKey}) => {
-  if (!json) { return json; }
+  if (!json) { return json }
 
-  const binaryFields = json[accountingKey] || [];
-  const binaryPaths = binaryFields.map(bf => pathForCacheItem({cachePath, id, type, keyPath: bf}));
-
-  const binaryDataArr = await Promise.all(binaryPaths.map(bp => fsPromise.readFileAsync(bp)));
-
-  const newJson = binaryDataArr.reduce((acc, bd, idx) => (
-    dotProp.set(acc, binaryFields[idx], bd)
-  ), json);
-  delete newJson[accountingKey];
-  return newJson;
-};
+  const binaryFields = json[accountingKey] || []
+  const binaryPaths = binaryFields.map((bf) => pathForCacheItem({cachePath, id, keyPath: bf, type}))
+  // noinspection JSUnresolvedFunction
+  const binaryDataArr = await Promise.all(binaryPaths.map((bp) => fsPromise.readFileAsync(bp)))
+  const newJson = binaryDataArr.reduce((acc, bd, idx) => dotProp.set(acc, binaryFields[idx], bd), json)
+  delete newJson[accountingKey]
+  return newJson
+}
 
 const clearBinaryItemsFromDisk = async ({id, type, json, cachePath, accountingKey}) => {
-  if (!json) { return json; }
+  if (!json) { return json }
 
-  const binaryFields = json[accountingKey] || [];
-  const binaryPaths = binaryFields.map(bf => pathForCacheItem({cachePath, id, type, keyPath: bf}));
+  const binaryFields = json[accountingKey] || []
+  const binaryPaths = binaryFields.map((bf) => pathForCacheItem({cachePath, id, keyPath: bf, type}))
+  // noinspection JSUnresolvedFunction
+  return Promise.all(binaryPaths.map((bp) => fsPromise.removeFileAsync(bp)))
+}
 
-  return Promise.all(binaryPaths.map(bp => fsPromise.removeFileAsync(bp)));
-};
+const binaryCacheTypes = {
+  childrenArgs: "childrenArgs",
+  content: "content",
+  contentArgs: "contentArgs",
+  handlesArgs: "handlesArgs"
+}
 
-const pathForCacheItem = ({cachePath, id, type, keyPath}) => {
-  const idParts = id.split(/(?:\/|\\|\||@|:)+/);
-  const sanitizedPathParts = [...idParts, `${type}--${keyPath.join("--")}`].map(ip => sanitize(ip, {replacement: "_"}));
-
-  return path.join(cachePath, ...sanitizedPathParts);
-};
-
-export {binaryItemsToDisk, binaryItemsFromDisk, clearBinaryItemsFromDisk};
+export {binaryItemsToDisk, binaryItemsFromDisk, clearBinaryItemsFromDisk, binaryCacheTypes}

@@ -1,12 +1,19 @@
-import Rx from 'rxjs/Rx';
-import chokidar from 'chokidar';
+import Rx from "rxjs/Rx"
+import chokidar from "chokidar"
 
-const chokidar$ = (...chokidarArgs) => (
+const chokidar$ = (...chokidarArgs) =>
   Rx.Observable.create((subscriber) => {
-    const watcher = chokidar.watch.apply(this, chokidarArgs);
-    watcher.on('all', () => { subscriber.next(); });
-    return () => watcher.close();
-  }).publish().refCount()
-);
+    const watcher = chokidar.watch.apply(null, chokidarArgs)
 
-export {chokidar$};
+    watcher.on("all", () => {
+      subscriber.next()
+    })
+
+    return () => {
+      watcher.close()
+    }
+  })
+  .publish()
+  .refCount()
+
+export {chokidar$}

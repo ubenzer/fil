@@ -1,44 +1,52 @@
-import {singlePostHandler} from "./routes/singlePostHandler";
-import {recentPostsCollectionHandler} from "./routes/recentPostsCollectionHandler";
-import {postCollection} from "./contentTypes/postCollection";
-import {post} from "./contentTypes/post";
-import path from "path";
-import Rx from 'rxjs/Rx';
-import chokidar from 'chokidar';
-import {image} from "./contentTypes/image";
-import {file} from "./contentTypes/file";
-import {scaledImage} from "./contentTypes/scaledImage";
-import {binaryPassthroughHandler} from "./routes/postAttachmentPassthroughHandler";
+import {binaryPassthroughHandler} from "./routes/postAttachmentPassthroughHandler"
+import {chokidar$} from "./utils/chokidar"
+import {file} from "./contentTypes/file"
+import {image} from "./contentTypes/image"
+import path from "path"
+import {post} from "./contentTypes/post"
+import {postCollection} from "./contentTypes/postCollection"
+import {recentPostsCollectionHandler} from "./routes/recentPostsCollectionHandler"
+import {scaledImage} from "./contentTypes/scaledImage"
+import {singlePostHandler} from "./routes/singlePostHandler"
+
+const contentPath = "contents"
+const postSubfolder = "post"
+const postPath = path.join(contentPath, postSubfolder)
+const templatePath = path.join("templates")
 
 const project = {
+  cachePath() {
+    return "./cache"
+  },
   contentTypes() {
-    return {posts: postCollection, post, file, image, scaledImage};
+    return {
+      file,
+      image,
+      post,
+      posts: postCollection,
+      scaledImage
+    }
+  },
+  outPath() {
+    return "./dist"
   },
   routeHandlers() {
-    return {singlePostHandler, recentPostsCollectionHandler, binaryPassthroughHandler};
+    return {
+      binaryPassthroughHandler,
+      recentPostsCollectionHandler,
+      singlePostHandler
+    }
   },
-  outPath() { return "./dist"; },
-  cachePath() { return "./cache"; },
-
   // Observable for changes that doesn't belong to any content (such as templates)
   watcher$() {
-    return Rx.Observable.create((subscriber) => {
-      const watcher = chokidar.watch(
-        templatePath,
-        {
-          ignored: ["**/.*"],
-          ignoreInitial: true
-        }
-      );
-      watcher.on('all', () => { subscriber.next(); });
-      return () => watcher.close();
-    }).publish().refCount()
+    return chokidar$(templatePath,
+      {
+        ignoreInitial: true,
+        ignored: ["**/.*"]
+      }
+    )
   }
-};
-const contentPath = "contents";
-const postSubfolder = "post";
-const postPath = path.join(contentPath, postSubfolder);
-const templatePath = path.join("templates");
+}
 
-export {project, contentPath, postSubfolder, postPath, templatePath};
-export default project;
+export {project, contentPath, postSubfolder, postPath, templatePath}
+export default project
