@@ -2,5 +2,5 @@ npm-debug.log*
 node_modules
 appold
 /sample/dist/
-/sample/contents/
+/sample/contents/post
 /sample/cache/

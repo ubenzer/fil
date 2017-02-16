@@ -9,11 +9,15 @@ import {postCollection} from "./contentTypes/postCollection"
 import {recentPostsCollectionHandler} from "./routes/recentPostsCollectionHandler"
 import {scaledImage} from "./contentTypes/scaledImage"
 import {singlePostHandler} from "./routes/singlePostHandler"
+import {cssCollection} from "./contentTypes/templateItems/cssCollection";
+import {templateCssHandler} from "./routes/templateCssHandler";
+import {templateCollection} from "./contentTypes/templateItems/templateCollection";
 
 const contentPath = "contents"
 const postSubfolder = "post"
+const templateSubfolder = "template"
 const postPath = path.join(contentPath, postSubfolder)
-const templatePath = path.join("templates")
+const templatePath = path.join(contentPath, templateSubfolder)
 
 const project = {
   cachePath() {
@@ -22,11 +26,13 @@ const project = {
   contentTypes() {
     return {
       compressedImage,
+      csses: cssCollection,
       file,
       image,
       post,
       posts: postCollection,
-      scaledImage
+      scaledImage,
+      templates: templateCollection
     }
   },
   outPath() {
@@ -36,19 +42,11 @@ const project = {
     return {
       binaryPassthroughHandler,
       recentPostsCollectionHandler,
-      singlePostHandler
+      singlePostHandler,
+      templateCssHandler
     }
-  },
-  // Observable for changes that doesn't belong to any content (such as templates)
-  watcher$() {
-    return chokidar$(templatePath,
-      {
-        ignoreInitial: true,
-        ignored: ["**/.*"]
-      }
-    )
   }
 }
 
-export {project, contentPath, postSubfolder, postPath, templatePath}
+export {project, contentPath, postSubfolder, postPath, templateSubfolder, templatePath}
 export default project

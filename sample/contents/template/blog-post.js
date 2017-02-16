@@ -2,7 +2,7 @@ import Helmet from "react-helmet"
 import React from "react"
 
 const template = ({content}) =>
-  <div>
+  <div className="blog-post">
     <Helmet
       base={{href: "http://mysite.com/", target: "_blank"}}
       defaultTitle="My Default Title"
