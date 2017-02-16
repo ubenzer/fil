@@ -10,13 +10,13 @@ import path from "path"
 console.info("=== Fil ===")
 console.info(`Running using node ${process.version}`)
 
-const argv = parseArgs(process.argv, {boolean: ["dynamic", "force", "no-cache"]})
+const argv = parseArgs(process.argv, {boolean: ["dynamic", "force", "nocache"]})
 
 const projectRootFile = require(path.join(process.cwd(), "index.js")).default
 const projectRunner = new ProjectRunner({
   listenToChanges: argv.dynamic,
   project: projectRootFile,
-  useCache: !argv["no-cache"]
+  useCache: !argv.nocache
 })
 
 const pidFolder = path.join(process.cwd(), projectRootFile.cachePath())
