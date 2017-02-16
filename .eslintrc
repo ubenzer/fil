@@ -34,6 +34,7 @@
     "dot-location": ["error", "property"],
     "id-length": 0,
     "indent": ["error", 2],
+    "lines-around-comment": "off",
     "max-len": ["error", 120],
     "max-lines": ["error", 500],
     "max-statements": ["error", 20],

@@ -1,7 +1,8 @@
-import {compress, meta} from "../utils/image"
 import {idToPath, pathToIdPart, toGeneratedImagePath} from "../utils/id"
 import {chokidar$} from "../utils/chokidar"
 import {contentPath} from "../index"
+import {fsPromise} from "../../app/utils/misc"
+import {meta} from "../utils/image"
 import path from "path"
 
 // Null stands for "original"
@@ -16,7 +17,7 @@ export const image = {
     const imageMeta = await meta({src: path.join(contentPath, imagePath)})
     const {width} = imageMeta
 
-    return widths
+    const scaledImages = widths
       .filter((w) => w < width)
       .reduce((acc, w) =>
         [...acc, ...imageFormats.map((f) => ({
@@ -34,15 +35,17 @@ export const image = {
 
         return `scaledImage@${p}`
       })
+    return [...scaledImages, `compressedImage@${imagePath}`];
   },
   childrenWatcher$: watcher$,
 
   content: async ({id}) => {
     const p = path.join(contentPath, idToPath({id}))
-    const [m, compressedImageAsBuffer] = await Promise.all([meta({src: p}), compress({src: p})])
+    // noinspection JSUnresolvedFunction
+    const [m, i] = await Promise.all([meta({src: p}), fsPromise.readFileAsync(p)])
 
     return {
-      content: compressedImageAsBuffer,
+      content: i,
       meta: m
     }
   },

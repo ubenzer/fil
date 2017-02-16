@@ -7,7 +7,9 @@ const binaryPassthroughHandler = {
     const p = urlToPath({url})
     const isImage = isPathImage({p})
     const isScaledImage = isGeneratedImagePath({p})
-    const type = isImage ? isScaledImage ? "scaledImage" : "image" : "file" // eslint-disable-line no-nested-ternary
+    /* eslint-disable no-nested-ternary */
+    const type = isImage ? isScaledImage ? "scaledImage" : "compressedImage" : "file"
+    /* eslint-enable no-nested-ternary */
 
     const id = `${type}@${postSubfolder}/${p}`
     const value = await project.valueOf({id})

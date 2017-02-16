@@ -59,7 +59,7 @@ const clearBinaryItemsFromDisk = async ({id, type, json, cachePath, accountingKe
   const binaryFields = json[accountingKey] || []
   const binaryPaths = binaryFields.map((bf) => pathForCacheItem({cachePath, id, keyPath: bf, type}))
   // noinspection JSUnresolvedFunction
-  return Promise.all(binaryPaths.map((bp) => fsPromise.removeFileAsync(bp)))
+  return Promise.all(binaryPaths.map((bp) => fsPromise.removeAsync(bp)))
 }
 
 const binaryCacheTypes = {

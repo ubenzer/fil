@@ -1,5 +1,6 @@
 import {binaryPassthroughHandler} from "./routes/postAttachmentPassthroughHandler"
 import {chokidar$} from "./utils/chokidar"
+import {compressedImage} from "./contentTypes/compressedImage";
 import {file} from "./contentTypes/file"
 import {image} from "./contentTypes/image"
 import path from "path"
@@ -20,6 +21,7 @@ const project = {
   },
   contentTypes() {
     return {
+      compressedImage,
       file,
       image,
       post,
