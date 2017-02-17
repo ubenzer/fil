@@ -26,7 +26,7 @@
     "gauge": "^2.7.3",
     "globby": "^6.1.0",
     "larvitslugify": "^0.10.10",
-    "markdown-it": "^8.2.2",
+    "markdown-it": "^8.3.0",
     "mime-types": "^2.1.14",
     "minimist": "^1.2.0",
     "npid": "^0.4.0",
