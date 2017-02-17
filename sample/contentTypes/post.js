@@ -25,9 +25,8 @@ export const post = {
   },
   childrenWatcher$: ({id}) =>
     chokidar$(path.join(postPath, idToPath({id})), {
-      depth: 3,
       ignoreInitial: true,
-      ignored: ["**/.*", "index.md", "**/"]
+      ignored: ["**/.*", path.join(postPath, idToPath({id}, "index.md")), "**/"]
     }),
   content: async ({id}) => {
     const rawFileContent = await fsPromise.readFileAsync(path.join(postPath, idToPath({id}), "index.md"), "utf8")

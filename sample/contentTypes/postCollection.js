@@ -1,4 +1,4 @@
-import {chokidar$} from "../utils/chokidar"
+import {chokidarAddRemoveFile$} from "../utils/chokidar"
 import {getFoldersIn} from "../../app/utils/misc"
 import path from "path"
 import {postPath} from "../index"
@@ -23,10 +23,9 @@ export const postCollection = {
     return posts.map(({year, month, postId}) => `post@${year}/${month}/${postId}`)
   },
   childrenWatcher$: () =>
-    chokidar$(postPath, {
+    chokidarAddRemoveFile$(`${postPath}/**/index.md`, {
       depth: 3,
-      ignoreInitial: true,
-      ignored: ["**/.*", "!**/"]
+      ignoreInitial: true
     }),
   content: async () => ({})
 }
