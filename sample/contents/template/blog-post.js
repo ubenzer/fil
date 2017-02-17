@@ -1,18 +1,19 @@
+import {DefaultHeader} from "./default-header"
 import Helmet from "react-helmet"
 import React from "react"
-import {urlForTemplateCss} from "../../utils/url"
-import {DefaultHeader} from "./default-header"
 
-const template = ({content}) =>
+const template = ({title, htmlContent}) =>
   <div className="blog-post">
     <DefaultHeader />
-    <Helmet
-      title="bd"
-    />
+    <Helmet title="bd" />
 
-    <div dangerouslySetInnerHTML={{__html: content}} />
+    <h1>{title}</h1>
+    <div dangerouslySetInnerHTML={{__html: htmlContent}} />
   </div>
 
-template.propTypes = {content: React.PropTypes.string.isRequired}
+template.propTypes = {
+  htmlContent: React.PropTypes.string.isRequired,
+  title: React.PropTypes.string.isRequired
+}
 
 export {template}

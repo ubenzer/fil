@@ -14,7 +14,7 @@ const templateCssHandler = {
     }
   },
   async handles({cssFiles}) {
-    return cssFiles.map(urlForTemplateCss)
+    return cssFiles.map((id) => urlForTemplateCss({id}))
   },
   async handlesArguments({project}) {
     const {children: cssFiles} = await project.metaOf({id: "csses"})
