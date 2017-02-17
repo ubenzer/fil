@@ -1,24 +1,13 @@
 import Helmet from "react-helmet"
 import React from "react"
+import {urlForTemplateCss} from "../../utils/url"
+import {DefaultHeader} from "./default-header"
 
 const template = ({content}) =>
   <div className="blog-post">
+    <DefaultHeader />
     <Helmet
-      base={{href: "http://mysite.com/", target: "_blank"}}
-      defaultTitle="My Default Title"
-      htmlAttributes={{lang: "en"}}
-      link={[
-        {href: "http://mysite.com/example", rel: "canonical"}
-      ]}
-      meta={[
-        {content: "Helmet application", name: "description"}
-      ]}
-      script={[
-        {src: "http://include.com/pathtojs.js", type: "text/javascript"}
-      ]}
-      title="My Title"
-      titleAttributes={{itemprop: "name", lang: "en"}}
-      titleTemplate="MySite.com - %s"
+      title="bd"
     />
 
     <div dangerouslySetInnerHTML={{__html: content}} />

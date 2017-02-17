@@ -35,7 +35,7 @@ export const image = {
 
         return `scaledImage@${p}`
       })
-    return [...scaledImages, `compressedImage@${imagePath}`];
+    return [...scaledImages, `compressedImage@${imagePath}`]
   },
   childrenWatcher$: watcher$,
 

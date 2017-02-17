@@ -1,6 +1,7 @@
 import {binaryPassthroughHandler} from "./routes/postAttachmentPassthroughHandler"
 import {chokidar$} from "./utils/chokidar"
-import {compressedImage} from "./contentTypes/compressedImage";
+import {compressedImage} from "./contentTypes/compressedImage"
+import {cssCollection} from "./contentTypes/templateItems/cssCollection"
 import {file} from "./contentTypes/file"
 import {image} from "./contentTypes/image"
 import path from "path"
@@ -9,9 +10,7 @@ import {postCollection} from "./contentTypes/postCollection"
 import {recentPostsCollectionHandler} from "./routes/recentPostsCollectionHandler"
 import {scaledImage} from "./contentTypes/scaledImage"
 import {singlePostHandler} from "./routes/singlePostHandler"
-import {cssCollection} from "./contentTypes/templateItems/cssCollection";
-import {templateCssHandler} from "./routes/templateCssHandler";
-import {templateCollection} from "./contentTypes/templateItems/templateCollection";
+import {templateCssHandler} from "./routes/templateCssHandler"
 
 const contentPath = "contents"
 const postSubfolder = "post"
@@ -31,8 +30,7 @@ const project = {
       image,
       post,
       posts: postCollection,
-      scaledImage,
-      templates: templateCollection
+      scaledImage
     }
   },
   outPath() {
@@ -45,6 +43,10 @@ const project = {
       singlePostHandler,
       templateCssHandler
     }
+  },
+  // Observable for changes that doesn't belong to any content (such as templates)
+  watcher$() {
+    return chokidar$(`${templatePath}/**/*.js`, {ignoreInitial: true})
   }
 }
 

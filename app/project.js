@@ -73,7 +73,10 @@ export class Project {
   /* The ultimate change detector */
   watcher$() {
     if (!this._listenToChanges) { return Rx.Observable.empty() }
-    return this._contentManager.watcher$()
+    return Rx.Observable.merge(
+      this._contentManager.watcher$(),
+      this._project.watcher$()
+    )
   }
 
   /* Path resolving */

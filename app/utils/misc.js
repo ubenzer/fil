@@ -11,11 +11,6 @@ const getFoldersIn = async (p) => {
   return allFiles.filter((f) => fs.statSync(path.join(p, f)).isDirectory()) // eslint-disable-line no-sync
 }
 
-const requireUncached = (module) => {
-  delete require.cache[require.resolve(module)]
-  return require(module) // eslint-disable-line global-require
-}
-
 const chunk = ({array, chunkSize}) => {
   const tbReturned = []
 
@@ -29,4 +24,4 @@ const chunk = ({array, chunkSize}) => {
 // https://gist.github.com/spion/8c9d8556697ed61108177164e90fb50d
 const translateError = (e) => e
 
-export {requireUncached, getFoldersIn, fsPromise, chunk, translateError}
+export {getFoldersIn, fsPromise, chunk, translateError}

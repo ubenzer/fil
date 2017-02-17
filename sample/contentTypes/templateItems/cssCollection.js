@@ -1,7 +1,7 @@
+import {templatePath, templateSubfolder} from "../../index"
 import {chokidar$} from "../../utils/chokidar"
 import globby from "globby"
 import {pathToIdPart} from "../../utils/id"
-import {templatePath, templateSubfolder} from "../../index"
 
 export const cssCollection = {
   children: async () =>
@@ -15,10 +15,6 @@ export const cssCollection = {
         return `file@${templateSubfolder}/${childId}`
       })
     ),
-  childrenWatcher$: () =>
-    chokidar$(templatePath, {
-      ignoreInitial: true,
-      ignored: ["**/.*", "**/", "!**/*.css"]
-    }),
+  childrenWatcher$: () => chokidar$(`${templatePath}/**/*.css`, {ignoreInitial: true}),
   content: async () => ({})
 }

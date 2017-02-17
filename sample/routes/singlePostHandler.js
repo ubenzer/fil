@@ -2,7 +2,7 @@ import React from "react"
 import {defaultHeadersFor} from "../utils/http"
 import path from "path"
 import {render} from "../utils/template"
-import {requireUncached} from "../../app/utils/misc"
+import {requireUncached} from "../utils/require"
 import {templatePath} from "../index"
 
 const singlePostHandler = {
