@@ -1,6 +1,7 @@
-import {idToPath, idToType, isGeneratedImagePath, isPathImage, urlToPath} from "../utils/id"
+import {idToType, isGeneratedImagePath, isPathImage, urlToPath} from "../utils/id"
 import {defaultHeadersFor} from "../utils/http"
 import {postSubfolder} from "../index"
+import {urlForPostAttachment} from "../utils/url"
 
 const binaryPassthroughHandler = {
   async handle({project, url}) {
@@ -19,24 +20,24 @@ const binaryPassthroughHandler = {
       headers: defaultHeadersFor({url})
     }
   },
-  async handles({attachmentIds, scaledImageIds}) {
-    return [...attachmentIds, ...scaledImageIds]
-      .map((id) => idToPath({id}))
-      // we get rid of post part of id (--->post<---/2010/05/finaller/finaller-500.scaled.webp)
-      .map((url) => url.substr(postSubfolder.length))
+  async handles({nonImageChildren, scaledOrCompressedImages}) {
+    return [...nonImageChildren, ...scaledOrCompressedImages]
+      .map((id) => urlForPostAttachment({id}))
   },
   async handlesArguments({project}) {
     const posts = await project.metaOf({id: "posts"})
     const arrayOfChildMeta = await Promise.all(posts.children.map((post) => project.metaOf({id: post})))
     const postChildrenIds = arrayOfChildMeta.reduce((acc, meta) => [...acc, ...(meta.children)], [])
+    const nonImageChildren = postChildrenIds.filter((pci) => idToType({id: pci}) !== "image")
 
     const postImageIds = postChildrenIds.filter((pci) => idToType({id: pci}) === "image")
-    const arrayOfScaledImageMeta = await Promise.all(postImageIds.map((c) => project.metaOf({id: c})))
-    const scaledImageIds = arrayOfScaledImageMeta.reduce((acc, meta) => [...acc, ...(meta.children)], [])
+    const arrayOfScaledOrCompressedImagesMeta = await Promise.all(postImageIds.map((c) => project.metaOf({id: c})))
+    const scaledOrCompressedImages = arrayOfScaledOrCompressedImagesMeta
+      .reduce((acc, meta) => [...acc, ...(meta.children)], [])
 
     return {
-      attachmentIds: postChildrenIds,
-      scaledImageIds
+      nonImageChildren,
+      scaledOrCompressedImages
     }
   }
 }

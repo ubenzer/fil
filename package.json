@@ -27,6 +27,7 @@
     "globby": "^6.1.0",
     "larvitslugify": "^0.10.10",
     "markdown-it": "^8.3.0",
+    "markdown-it-replace-link": "^1.0.1",
     "mime-types": "^2.1.14",
     "minimist": "^1.2.0",
     "npid": "^0.4.0",

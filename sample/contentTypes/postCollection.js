@@ -20,7 +20,7 @@ export const postCollection = {
       )
     )).reduce((acc, postArray) => [...acc, ...postArray], [])
 
-    return posts.map(({year, month, postId}) => `post@${year}/${month}/${postId}`)
+    return posts.map(({year, month, postId}) => `post@/${year}/${month}/${postId}`)
   },
   childrenWatcher$: () =>
     chokidarAddRemoveFile$(`${postPath}/**/index.md`, {

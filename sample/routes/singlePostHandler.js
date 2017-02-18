@@ -4,10 +4,12 @@ import path from "path"
 import {render} from "../utils/template"
 import {requireUncached} from "../utils/require"
 import {templatePath} from "../index"
+import {urlForPost} from "../utils/url"
+import {urlToIdPart} from "../utils/id"
 
 const singlePostHandler = {
   async handle({project, url}) {
-    const id = url.substr(1)
+    const id = urlToIdPart({url})
     const post = await project.valueOf({id: `post@${id}`})
 
     const Template = requireUncached(path.join(process.cwd(), templatePath, "blog-post")).template
@@ -19,7 +21,7 @@ const singlePostHandler = {
     }
   },
   async handles({posts}) {
-    return posts.map((p) => `/${p.split("@")[1]}`)
+    return posts.map((p) => urlForPost({id: p}))
   },
   async handlesArguments({project}) {
     const posts = await project.metaOf({id: "posts"})

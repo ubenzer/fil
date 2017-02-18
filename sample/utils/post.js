@@ -1,7 +1,8 @@
-import MarkdownIt from "markdown-it"
 import frontMatter from "front-matter"
-
-const md = new MarkdownIt()
+import markdownIt from "markdown-it"
+import markdownItReplaceLink from "markdown-it-replace-link"
+import {postIdToImageId} from "./id"
+import {urlForPostAttachment} from "./url"
 
 const extractTitleFromMarkdown = ({markdown}) => {
   const lines = markdown.split("\n")
@@ -23,7 +24,15 @@ const extractTitleFromMarkdown = ({markdown}) => {
   }
 }
 
-const calculateHtmlContent = ({markdownContent}) => {
+const calculateHtmlContent = ({id, markdownContent}) => {
+  // noinspection JSUnusedGlobalSymbols
+  const md = markdownIt({
+    replaceLink: (link) => {
+      const imageId = postIdToImageId({imageRelativeUrl: link, postId: id})
+      return urlForPostAttachment({id: imageId})
+    }
+  }).use(markdownItReplaceLink)
+
   const separatedContent = markdownContent.split("---more---")
 
   if (separatedContent.length > 1) {
@@ -44,7 +53,7 @@ const calculateHtmlContent = ({markdownContent}) => {
   }
 }
 
-const rawContentToPostObject = async ({rawFileContent}) => {
+const rawContentToPostObject = async ({id, rawFileContent}) => {
   const doc = frontMatter(rawFileContent)
   const createDate = doc.attributes.created
   const editDate = doc.attributes.edited instanceof Date ? doc.attributes.edited : new Date(createDate)
@@ -53,7 +62,7 @@ const rawContentToPostObject = async ({rawFileContent}) => {
 
   const markdownContent = extractedTitleObject.content
   const title = typeof doc.attributes.title === "string" ? doc.attributes.title : extractedTitleObject.title
-  const {htmlContent, htmlExcerpt} = calculateHtmlContent({markdownContent})
+  const {htmlContent, htmlExcerpt} = calculateHtmlContent({id, markdownContent})
 
   return {
     createDate,

@@ -1,5 +1,6 @@
 import {IMAGE_EXTENSIONS} from "./image"
 import path from "path"
+import {postSubfolder} from "../index"
 import replace from "replaceall"
 
 const scaledImagePostfix = ".scaled"
@@ -37,14 +38,9 @@ const idToPath = ({id}) => replace("/", path.sep, id.substr(id.indexOf("@") + 1)
 
 const pathToIdPart = ({p}) => replace(path.sep, "/", p)
 
-const urlToPath = ({url}) => {
-  if (url.length === 0) { return {p: ""} }
-  if (url[0] === "/") {
-    url = url.substr(1) // eslint-disable-line no-param-reassign
-  }
+const urlToPath = ({url}) => replace("/", path.sep, url)
 
-  return replace("/", path.sep, url)
-}
+const urlToIdPart = ({url}) => pathToIdPart({p: urlToPath({url})})
 
 const isPathImage = ({p}) => IMAGE_EXTENSIONS.filter((ie) => path.extname(p) === `.${ie}`).length > 0
 
@@ -58,5 +54,13 @@ const isGeneratedImagePath = ({p}) => {
   }
 }
 
+const postIdToImageId = ({postId, imageRelativeUrl}) => {
+  const postPath = idToPath({id: postId})
+  const imageRelPath = urlToPath({url: imageRelativeUrl})
+  const imageAbsPath = path.join(postPath, imageRelPath)
+  return `image@/${postSubfolder}${pathToIdPart({p: imageAbsPath})}`
+}
+
 export {idToType, idToPath, pathToIdPart, urlToPath, isGeneratedImagePath,
-  fromGeneratedImagePath, toGeneratedImagePath, isPathImage}
+  fromGeneratedImagePath, toGeneratedImagePath, isPathImage, postIdToImageId,
+  urlToIdPart}

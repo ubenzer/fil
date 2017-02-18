@@ -19,7 +19,7 @@ export const post = {
         const childPath = path.join(p, file)
         const childId = pathToIdPart({p: childPath})
 
-        return isPathImage({p: childPath}) ? `image@${postSubfolder}/${childId}` : `file@${postSubfolder}/${childId}`
+        return isPathImage({p: childPath}) ? `image@/${postSubfolder}${childId}` : `file@/${postSubfolder}${childId}`
       })
     )
   },
@@ -31,7 +31,7 @@ export const post = {
   content: async ({id}) => {
     const rawFileContent = await fsPromise.readFileAsync(path.join(postPath, idToPath({id}), "index.md"), "utf8")
 
-    return rawContentToPostObject({rawFileContent})
+    return rawContentToPostObject({id, rawFileContent})
   },
   contentWatcher$: ({id}) => chokidar$(path.join(postPath, idToPath({id}), "index.md"), {ignoreInitial: true})
 }
