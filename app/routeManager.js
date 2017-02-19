@@ -57,6 +57,8 @@ export class RouteManager {
       throw new Error(`Handler with id ${handlerId} not found!`)
     }
 
+    const handlesArgumentsFn = handler.instance.handlesArguments || RouteManager.defaultHandlesArguments
+
     // Check arguments first to see if we already have a calculated value
     const [oldArgs, newArgs] = await Promise.all([
       binaryItemsFromDisk({
@@ -66,7 +68,7 @@ export class RouteManager {
         json: handler.handlesArgs,
         type: binaryCacheTypes.handlesArgs
       }),
-      handler.instance.handlesArguments({project: this._project})
+      handlesArgumentsFn({project: this._project})
     ])
     const areArgsSame = Project.compareArgumentCache({newArgs, oldArgs})
 
@@ -149,3 +151,4 @@ export class RouteManager {
   }
 }
 RouteManager.binaryFieldDesriptorKey = "_binaryFields"
+RouteManager.defaultHandlesArguments = async ({id}) => ({id})

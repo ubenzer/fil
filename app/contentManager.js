@@ -232,6 +232,7 @@ export class ContentManager {
     this._ensureCacheEntryFor({id})
 
     const oldChildren = this._cache.contents[id].children
+    this._cache.contents[id].children = null
     await this._ensureCachedChildrenFor({id})
     const newChildren = this._cache.contents[id].children
     const removedChildren = oldChildren.filter((oc) => newChildren.indexOf(oc) === -1)

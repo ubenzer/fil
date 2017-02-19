@@ -1,6 +1,6 @@
+import {postSubfolder, templateSubfolder} from "../index"
 import {idToPath} from "./id"
 import path from "path"
-import {postSubfolder} from "../index"
 import replaceall from "replaceall"
 import slug from "larvitslugify"
 
@@ -8,6 +8,11 @@ const urlForTemplateCss = ({id}) => {
   const p = idToPath({id})
   const url = slug(replaceall(path.sep, "/", p), {save: ["/", "."]})
   return `/${url}`
+}
+
+const urlForTemplateStylus = () => {
+  const p = replaceall(path.sep, "/", templateSubfolder)
+  return `/${p}/ui.css`
 }
 
 const urlForPost = ({id}) => {
@@ -21,4 +26,4 @@ const urlForPostAttachment = ({id}) => {
   return slug(replaceall(path.sep, "/", p), {save: ["/", "."]})
 }
 
-export {urlForTemplateCss, urlForPost, urlForPostAttachment}
+export {urlForTemplateCss, urlForPost, urlForPostAttachment, urlForTemplateStylus}

@@ -1,14 +1,14 @@
 import {defaultTitle, themeColor, titleTemplate} from "../../config"
 import Helmet from "react-helmet"
 import React from "react"
-import {urlForTemplateCss} from "../../utils/url"
+import {urlForTemplateStylus} from "../../utils/url"
 
 const DefaultHeader = () =>
   <Helmet
     defaultTitle={defaultTitle}
     htmlAttributes={{lang: "tr"}}
     link={[
-      {href: urlForTemplateCss({id: "template/blog-post.css"}), media: "screen", rel: "stylesheet", type: "text/css"}
+      {href: urlForTemplateStylus(), media: "screen", rel: "stylesheet", type: "text/css"}
     ]}
     meta={[
       {content: "utf-8", name: "charset"},

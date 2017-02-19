@@ -10,7 +10,9 @@ import {postCollection} from "./contentTypes/postCollection"
 import {recentPostsCollectionHandler} from "./routes/recentPostsCollectionHandler"
 import {scaledImage} from "./contentTypes/scaledImage"
 import {singlePostHandler} from "./routes/singlePostHandler"
+import {stylus} from "./contentTypes/templateItems/stylus"
 import {templateCssHandler} from "./routes/templateCssHandler"
+import {templateStylusHandler} from "./routes/templateStylusHandler"
 
 const contentPath = "contents"
 const postSubfolder = "post"
@@ -30,7 +32,8 @@ const project = {
       image,
       post,
       posts: postCollection,
-      scaledImage
+      scaledImage,
+      stylus
     }
   },
   outPath() {
@@ -41,7 +44,8 @@ const project = {
       binaryPassthroughHandler,
       recentPostsCollectionHandler,
       singlePostHandler,
-      templateCssHandler
+      templateCssHandler,
+      templateStylusHandler
     }
   },
   // Observable for changes that doesn't belong to any content (such as templates)
