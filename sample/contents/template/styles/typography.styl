@@ -1,0 +1,36 @@
+body
+  font-family "Roboto", serif
+  font-size 16px
+  line-height 28px
+
+a, a:visited
+  color $accent
+
+h1, h2, h3, h4, h5, h6
+  &, & a, & a:visited
+    margin 36px 0 12px 0
+    font-weight 400
+    color $text_primary
+    text-decoration none
+    font-family "Roboto", sans-serif
+    font-size 24px
+    line-height 32px
+
+h1.title
+  margin 0 0 24px 0
+
+h2
+  &, & a, & a:visited
+    font-size 16px
+
+p
+  margin 0
+p+p
+  margin-top 22px
+
+.content
+  ul li
+    padding 0 10px
+    border-left 4px solid $background_primary
+    list-style none
+    margin 5px 0

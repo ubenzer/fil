@@ -1,5 +1,42 @@
-@require "components/blogHeader.styl"
+// these two needs to be first for others to work properly
+@require "styles/mixins.styl"
+@require "styles/colors.styl"
+@require "styles/typography.styl"
+
+// regular inclues
+@require "components/**/*"
+
+*
+  box-sizing border-box
 
 body
-  background red
+  background $background_body
+  color $text_primary
+  margin 0
+  padding 0
 
+ul, li
+  margin 0
+  padding 0
+
+#content
+  display flex
+  flex-flow column
+  align-items stretch
+
+.main-container
+  width: 100%
+  max-width 1000px
+  display flex
+  justify-content center
+  align-self center
+  .main-content
+    flex-grow 1
+    max-width 740px
+  .sidebar
+    width 25%
+    flex-grow 0
+    flex-shrink 0
+
+::selection
+  accent-block()

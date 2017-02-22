@@ -12,7 +12,7 @@ const singlePostHandler = {
     const id = urlToIdPart({url})
     const post = await project.valueOf({id: `post@${id}`})
 
-    const Template = requireUncached(path.join(process.cwd(), templatePath, "blogPost")).template
+    const Template = requireUncached(path.join(process.cwd(), templatePath, "blogPost")).default
     const str = render({jsx: <Template {...post} />})
 
     return {

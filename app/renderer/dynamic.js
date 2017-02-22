@@ -70,7 +70,7 @@ DynamicRenderer.render404 = ({response}) => {
 DynamicRenderer.render500 = ({error, response}) => {
   console.error(error)
   response.writeHead(500)
-  response.end("500 - Check console")
+  response.end("<head></head><body>500 - Check console</body>")
 }
 DynamicRenderer.renderUrlList = ({handledUrlList, response}) => {
   const body = [`${handledUrlList.length} urls`, ...handledUrlList].join("\n")

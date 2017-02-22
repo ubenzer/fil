@@ -1,14 +1,15 @@
+import {BlogPost} from "./components/BlogPost"
 import Helmet from "react-helmet"
-import {MainContainer} from "./mainCotainer"
+import {MainContainer} from "./mainContainer"
 import React from "react"
 
 const template = ({title, htmlContent}) =>
   <MainContainer>
     <Helmet title={title} />
-    <div className="blog-post">
-      <h1>{title}</h1>
-      <div dangerouslySetInnerHTML={{__html: htmlContent}} />
-    </div>
+    <BlogPost
+      htmlContent={htmlContent}
+      title={title}
+    />
   </MainContainer>
 
 
@@ -17,4 +18,4 @@ template.propTypes = {
   title: React.PropTypes.string.isRequired
 }
 
-export {template}
+export default template

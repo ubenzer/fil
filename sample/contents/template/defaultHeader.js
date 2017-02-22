@@ -8,7 +8,13 @@ const DefaultHeader = () =>
     defaultTitle={defaultTitle}
     htmlAttributes={{lang: "tr"}}
     link={[
-      {href: urlForTemplateStylus(), media: "screen", rel: "stylesheet", type: "text/css"}
+      {href: urlForTemplateStylus(), media: "screen", rel: "stylesheet", type: "text/css"},
+      {
+        href: "https://fonts.googleapis.com/css?family=Roboto:300,400,400italic,500,500italic,700,700italic&lang=tr", // eslint-disable-line max-len
+        media: "screen",
+        rel: "stylesheet",
+        type: "text/css"
+      }
     ]}
     meta={[
       {content: "utf-8", name: "charset"},
