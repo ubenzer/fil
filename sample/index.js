@@ -3,6 +3,7 @@ import {chokidar$} from "./utils/chokidar"
 import {compressedImage} from "./contentTypes/compressedImage"
 import {cssCollection} from "./contentTypes/templateItems/cssCollection"
 import {file} from "./contentTypes/file"
+import {hashOf} from "./utils/hash"
 import {image} from "./contentTypes/image"
 import path from "path"
 import {post} from "./contentTypes/post"
@@ -35,6 +36,9 @@ const project = {
       scaledImage,
       stylus
     }
+  },
+  async contentVersion() {
+    return hashOf({p: "./contents"})
   },
   outPath() {
     return "./dist"

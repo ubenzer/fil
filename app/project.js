@@ -1,3 +1,4 @@
+import {clearCache, readHash} from "./utils/cache"
 import {ContentManager} from "./contentManager"
 import {RouteManager} from "./routeManager"
 import Rx from "rxjs/Rx"
@@ -20,7 +21,25 @@ export class Project {
 
   /* init & dispose logic */
   async initCache() {
-    if (!this._useCache) { return }
+    if (!this._useCache) {
+      debug("Cache will not be used")
+      return
+    }
+    debug("Checking if project is changed while fil is not running")
+    const cachePath = this._project.cachePath()
+    const [currentHash, cachedHash] = await Promise.all([
+      this._project.contentVersion(),
+      readHash({cachePath})
+    ])
+    debug(`Current: ${currentHash} Cached: ${cachedHash}`)
+
+    if (currentHash !== cachedHash) {
+      debug("Cache will be ignored.")
+      await clearCache({cachePath})
+      debug("Deleted up obsolete cache data...")
+      return
+    }
+
     return Promise.all([
       this._contentManager.loadCache(),
       this._routeManager.loadCache()
