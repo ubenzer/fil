@@ -17,7 +17,7 @@ const singlePostHandler = {
 
     return {
       body: str,
-      headers: defaultHeadersFor({defaultContentType: "text/html", url})
+      headers: defaultHeadersFor({url: `${url}/index.html`})
     }
   },
   async handles({posts}) {

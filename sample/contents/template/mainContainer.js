@@ -19,6 +19,6 @@ const MainContainer = ({children}) =>
     </div>
   </div>
 
-MainContainer.propTypes = {children: React.PropTypes.element.isRequired}
+MainContainer.propTypes = {children: React.PropTypes.arrayOf(React.PropTypes.element).isRequired}
 
 export {MainContainer}
