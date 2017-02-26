@@ -26,4 +26,6 @@ const urlForPostAttachment = ({id}) => {
   return slug(replaceall(path.sep, "/", p), {save: ["/", "."]})
 }
 
-export {urlForTemplateCss, urlForPost, urlForPostAttachment, urlForTemplateStylus}
+const isExternalUrl = ({url}) => url.includes("://") || url.startsWith("//")
+
+export {urlForTemplateCss, urlForPost, urlForPostAttachment, urlForTemplateStylus, isExternalUrl}

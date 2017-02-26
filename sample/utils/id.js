@@ -40,8 +40,6 @@ const pathToIdPart = ({p}) => replace(path.sep, "/", p)
 
 const urlToPath = ({url}) => replace("/", path.sep, url)
 
-const urlToIdPart = ({url}) => pathToIdPart({p: urlToPath({url})})
-
 const isPathImage = ({p}) => IMAGE_EXTENSIONS.filter((ie) => path.extname(p) === `.${ie}`).length > 0
 
 const isGeneratedImagePath = ({p}) => {
@@ -61,6 +59,7 @@ const postIdToImageId = ({postId, imageRelativeUrl}) => {
   return `image@/${postSubfolder}${pathToIdPart({p: imageAbsPath})}`
 }
 
-export {idToType, idToPath, pathToIdPart, urlToPath, isGeneratedImagePath,
-  fromGeneratedImagePath, toGeneratedImagePath, isPathImage, postIdToImageId,
-  urlToIdPart}
+const idForPostAttachment = ({url, type}) => `${type}@/${postSubfolder}${url}`
+
+export {idToType, idToPath, pathToIdPart, urlToPath, isGeneratedImagePath, idForPostAttachment,
+  fromGeneratedImagePath, toGeneratedImagePath, isPathImage, postIdToImageId}

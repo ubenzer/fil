@@ -25,7 +25,7 @@ const extractTitleFromMarkdown = ({markdown}) => {
   }
 }
 
-const calculateHtmlContent = ({id, markdownContent}) => {
+const calculateHtmlContent = ({id, imageMetas, markdownContent, scaledImageIds}) => {
   // noinspection JSUnusedGlobalSymbols
   const md = markdownIt({
     replaceLink: (link) => {
@@ -34,7 +34,7 @@ const calculateHtmlContent = ({id, markdownContent}) => {
     }
   })
     .use(markdownItReplaceLink)
-    .use(markdownImageParser)
+    .use(markdownImageParser, {imageMetas, scaledImageIds})
 
   const separatedContent = markdownContent.split("---more---")
 
@@ -56,7 +56,7 @@ const calculateHtmlContent = ({id, markdownContent}) => {
   }
 }
 
-const rawContentToPostObject = async ({id, rawFileContent}) => {
+const rawContentToPostObject = async ({id, imageMetas, rawFileContent, scaledImageIds}) => {
   const doc = frontMatter(rawFileContent)
   const createDate = doc.attributes.created
   const editDate = doc.attributes.edited instanceof Date ? doc.attributes.edited : new Date(createDate)
@@ -65,7 +65,7 @@ const rawContentToPostObject = async ({id, rawFileContent}) => {
 
   const markdownContent = extractedTitleObject.content
   const title = typeof doc.attributes.title === "string" ? doc.attributes.title : extractedTitleObject.title
-  const {htmlContent, htmlExcerpt} = calculateHtmlContent({id, markdownContent})
+  const {htmlContent, htmlExcerpt} = calculateHtmlContent({id, imageMetas, markdownContent, scaledImageIds})
 
   return {
     createDate,
