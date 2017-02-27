@@ -2,6 +2,7 @@ import {IMAGE_EXTENSIONS} from "./image"
 import path from "path"
 import {postSubfolder} from "../index"
 import replace from "replaceall"
+import {urlForPost} from "./url"
 
 const scaledImagePostfix = ".scaled"
 
@@ -61,5 +62,12 @@ const postIdToImageId = ({postId, imageRelativeUrl}) => {
 
 const idForPostAttachment = ({url, type}) => `${type}@/${postSubfolder}${url}`
 
-export {idToType, idToPath, pathToIdPart, urlToPath, isGeneratedImagePath, idForPostAttachment,
-  fromGeneratedImagePath, toGeneratedImagePath, isPathImage, postIdToImageId}
+const idForTemplateCss = ({url}) => `file@${url}`
+
+const idForPost = ({postIds, url}) =>
+  postIds
+    .map((c) => ({id: c, url: urlForPost({id: c})}))
+    .filter((c) => c.url === url)[0].id
+
+export {idToType, idToPath, pathToIdPart, urlToPath, isGeneratedImagePath, idForPostAttachment, idForPost,
+  fromGeneratedImagePath, toGeneratedImagePath, isPathImage, postIdToImageId, idForTemplateCss}

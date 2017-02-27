@@ -1,5 +1,6 @@
 import React from "react"
 import {defaultHeadersFor} from "../utils/http"
+import {idForPost} from "../utils/id"
 import path from "path"
 import {render} from "../utils/template"
 import {requireUncached} from "../utils/require"
@@ -8,9 +9,8 @@ import {urlForPost} from "../utils/url"
 
 const singlePostHandler = {
   async handle({project, url}) {
-    const id = (await project.metaOf({id: "posts"})).children
-      .map((c) => ({id: c, url: urlForPost({id: c})}))
-      .filter((c) => c.url === url)[0].id
+    const postIds = (await project.metaOf({id: "posts"})).children
+    const id = idForPost({postIds, url})
     const post = await project.valueOf({id})
 
     const Template = requireUncached(path.join(process.cwd(), templatePath, "blogPost")).default

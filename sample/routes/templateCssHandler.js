@@ -1,11 +1,10 @@
 import {defaultHeadersFor} from "../utils/http"
+import {idForTemplateCss} from "../utils/id"
 import {urlForTemplateCss} from "../utils/url"
-import {urlToPath} from "../utils/id"
 
 const templateCssHandler = {
   async handle({project, url}) {
-    const p = urlToPath({url})
-    const id = `file@${p}`
+    const id = idForTemplateCss({url})
     const value = await project.valueOf({id})
 
     return {

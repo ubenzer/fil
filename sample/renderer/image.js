@@ -1,7 +1,7 @@
-import {fromGeneratedImagePath, idForPostAttachment, idToPath} from "../utils/id"
+import {fromGeneratedImagePath, idForPostAttachment, idToPath, isPathImage, urlToPath} from "../utils/id"
+import {isExternalUrl, urlForPostAttachment} from "../utils/url"
 import mime from "mime-types"
 import path from "path"
-import {urlForPostAttachment} from "../utils/url"
 
 const FALLBACK_MAX_SIZE = 500
 
@@ -25,6 +25,8 @@ const calculateClassPartial = ({rawCaption}) => {
 
 const availableSizesFor = ({id, imageMetas: allImageMetas, scaledImageIds: allScaledImages}) => {
   const image = allImageMetas.filter((i) => i.id === id)[0]
+  if (!image) { return [] }
+
   const imagePath = idToPath({id})
 
   const scaledImages = allScaledImages.reduce((acc, i) => {
@@ -38,7 +40,7 @@ const availableSizesFor = ({id, imageMetas: allImageMetas, scaledImageIds: allSc
   }, [])
 
   return [...scaledImages, {
-    ext: image.meta.format,
+    ext: path.extname(idToPath({id: image.id})).substr(1),
     id: image.id,
     width: image.meta.width
   }]
@@ -76,9 +78,15 @@ const calculateFallbackImageUrl = ({availableSizes, url}) => {
   return urlForPostAttachment({id: bestCandidate.id})
 }
 
-const renderImageHtml = ({availableSizes, caption, classPartial, renderAsLink, url}) => {
+const imgTag = ({caption, classPartial, url}) =>
+  `<img src="${url}" title="${caption}" alt="${caption}" ${classPartial}>`
+
+const aTag = ({innerHtml, url}) =>
+  `<a href="${url}" target="_blank">${innerHtml}</a>`
+
+const renderAsPicture = ({availableSizes, caption, classPartial, renderAsLink, url}) => {
   const scaledImageUrl = calculateFallbackImageUrl({availableSizes, url})
-  const img = `<img src="${scaledImageUrl}" title="${caption}" alt="${caption}" ${classPartial}>`
+  const img = imgTag({caption, classPartial, url: scaledImageUrl})
 
   const sources = calculateSourceTag({availableSizes})
 
@@ -89,9 +97,17 @@ const renderImageHtml = ({availableSizes, caption, classPartial, renderAsLink, u
     </picture>`
 
   if (renderAsLink) {
-    return `<a href="${url}" target="_blank">${picture}</a>`
+    return aTag({innerHtml: picture, url})
   }
   return picture
+}
+
+const renderAsImg = ({caption, classPartial, renderAsLink, url}) => {
+  const img = imgTag({caption, classPartial, url})
+  if (renderAsLink) {
+    return aTag({innerHtml: img, url})
+  }
+  return img
 }
 
 export const markdownImageParser = (md, {imageMetas, scaledImageIds}) => {
@@ -101,12 +117,22 @@ export const markdownImageParser = (md, {imageMetas, scaledImageIds}) => {
     const url = token.attrs[srcIndex][1]
     const rawCaption = token.content
 
-    const id = idForPostAttachment({type: "image", url})
-    const availableSizes = availableSizesFor({id, imageMetas, scaledImageIds})
     const caption = calculateCaption({rawCaption})
     const classPartial = calculateClassPartial({rawCaption})
     const renderAsLink = calculateRenderAsLink({rawCaption})
-    return renderImageHtml({availableSizes, caption, classPartial, renderAsLink, url})
+
+    if (isExternalUrl({url}) || !isPathImage({p: urlToPath({url})})) {
+      return renderAsImg({caption, classPartial, renderAsLink, url})
+    }
+
+    const id = idForPostAttachment({type: "image", url})
+    const availableSizes = availableSizesFor({id, imageMetas, scaledImageIds})
+
+    if (availableSizes.length === 0) {
+      throw new Error(`Image with url "${url}" not found.`)
+    }
+
+    return renderAsPicture({availableSizes, caption, classPartial, renderAsLink, url})
   }
 }
 

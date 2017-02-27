@@ -1,6 +1,5 @@
-import {idToType, isGeneratedImagePath, isPathImage, urlToPath} from "../utils/id"
+import {idForPostAttachment, idToType, isGeneratedImagePath, isPathImage, urlToPath} from "../utils/id"
 import {defaultHeadersFor} from "../utils/http"
-import {postSubfolder} from "../index"
 import {urlForPostAttachment} from "../utils/url"
 
 const binaryPassthroughHandler = {
@@ -12,7 +11,7 @@ const binaryPassthroughHandler = {
     const type = isImage ? isScaledImage ? "scaledImage" : "image" : "file"
     /* eslint-enable no-nested-ternary */
 
-    const id = `${type}@${postSubfolder}/${p}`
+    const id = idForPostAttachment({type, url})
     const value = await project.valueOf({id})
 
     return {
