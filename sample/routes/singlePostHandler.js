@@ -9,7 +9,7 @@ import {urlForPost} from "../utils/url"
 
 const singlePostHandler = {
   async handle({project, url}) {
-    const postIds = (await project.metaOf({id: "posts"})).children
+    const postIds = (await project.metaOf({id: "postCollection"})).children
     const id = idForPost({postIds, url})
     const post = await project.valueOf({id})
 
@@ -25,7 +25,7 @@ const singlePostHandler = {
     return posts.map((p) => urlForPost({id: p}))
   },
   async handlesArguments({project}) {
-    const posts = await project.metaOf({id: "posts"})
+    const posts = await project.metaOf({id: "postCollection"})
     return {posts: posts.children}
   }
 }

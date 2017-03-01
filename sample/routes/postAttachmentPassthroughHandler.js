@@ -24,7 +24,7 @@ const binaryPassthroughHandler = {
       .map((id) => urlForPostAttachment({id}))
   },
   async handlesArguments({project}) {
-    const posts = await project.metaOf({id: "posts"})
+    const posts = await project.metaOf({id: "postCollection"})
     const arrayOfChildMeta = await Promise.all(posts.children.map((post) => project.metaOf({id: post})))
     const postAttachments = arrayOfChildMeta.reduce((acc, meta) => [...acc, ...(meta.children)], [])
 

@@ -125,7 +125,12 @@ export class ContentManager {
 
     if (!cachedContent.fn) {
       const handlers = this._project._project.contentTypes() // eslint-disable-line no-underscore-dangle
-      cachedContent.fn = handlers[id.split("@")[0]]
+      const handlerKey = id.split("@")[0]
+      const handler = handlers[handlerKey]
+      if (!handler) {
+        throw new Error(`Handler "${handlerKey}" can't be found for content "${id}"`)
+      }
+      cachedContent.fn = handler
     }
   }
 

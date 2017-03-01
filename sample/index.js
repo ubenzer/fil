@@ -10,6 +10,8 @@ import {postCollection} from "./contentTypes/postCollection"
 import {recentPostsCollectionHandler} from "./routes/recentPostsCollectionHandler"
 import {scaledImage} from "./contentTypes/scaledImage"
 import {singlePostHandler} from "./routes/singlePostHandler"
+import {staticAssetHandler} from "./routes/staticAssetHandler"
+import {staticAssetsCollection} from "./contentTypes/staticAssetsCollection"
 import {stylus} from "./contentTypes/templateItems/stylus"
 import {templateCssHandler} from "./routes/templateCssHandler"
 import {templateStylusHandler} from "./routes/templateStylusHandler"
@@ -17,8 +19,10 @@ import {templateStylusHandler} from "./routes/templateStylusHandler"
 const contentPath = "contents"
 const postSubfolder = "post"
 const templateSubfolder = "template"
+const staticAssetsSubfolder = "static"
 const postPath = path.join(contentPath, postSubfolder)
 const templatePath = path.join(contentPath, templateSubfolder)
+const staticAssetsPath = path.join(contentPath, staticAssetsSubfolder)
 
 const project = {
   cachePath() {
@@ -26,12 +30,13 @@ const project = {
   },
   contentTypes() {
     return {
-      csses: cssCollection,
+      cssCollection,
       file,
       image,
       post,
-      posts: postCollection,
+      postCollection,
       scaledImage,
+      staticAssetsCollection,
       stylus
     }
   },
@@ -46,6 +51,7 @@ const project = {
       binaryPassthroughHandler,
       recentPostsCollectionHandler,
       singlePostHandler,
+      staticAssetHandler,
       templateCssHandler,
       templateStylusHandler
     }
@@ -56,5 +62,7 @@ const project = {
   }
 }
 
-export {project, contentPath, postSubfolder, postPath, templateSubfolder, templatePath}
+export {project, contentPath, postSubfolder, postPath, templateSubfolder, templatePath, staticAssetsPath,
+  staticAssetsSubfolder}
+
 export default project

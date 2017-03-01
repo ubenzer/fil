@@ -1,13 +1,15 @@
-import {postSubfolder, templateSubfolder} from "../index"
+import {postSubfolder, staticAssetsSubfolder, templateSubfolder} from "../index"
 import {idToPath} from "./id"
 import path from "path"
 import replaceall from "replaceall"
 import slug from "larvitslugify"
 
-const urlForTemplateCss = ({id}) => {
-  const p = idToPath({id})
-  const url = slug(replaceall(path.sep, "/", p), {save: ["/", "."]})
-  return `/${url}`
+const urlForTemplateCss = ({id}) => replaceall(path.sep, "/", idToPath({id}))
+
+const urlForStaticAsset = ({id}) => {
+  // we get rid of post part of id (--->/static<---/robots.txt)
+  const p = idToPath({id}).substr(staticAssetsSubfolder.length + 1)
+  return replaceall(path.sep, "/", p)
 }
 
 const urlForTemplateStylus = () => {
@@ -28,4 +30,4 @@ const urlForPostAttachment = ({id}) => {
 
 const isExternalUrl = ({url}) => url.includes("://") || url.startsWith("//")
 
-export {urlForTemplateCss, urlForPost, urlForPostAttachment, urlForTemplateStylus, isExternalUrl}
+export {urlForTemplateCss, urlForPost, urlForPostAttachment, urlForTemplateStylus, isExternalUrl, urlForStaticAsset}
