@@ -1,7 +1,7 @@
-import {idForStaticAsset, pathToIdPart} from "../utils/id"
-import {staticAssetsPath, staticAssetsSubfolder} from "../index";
+import {staticAssetsPath, staticAssetsSubfolder} from "../index"
 import {chokidar$} from "../utils/chokidar"
 import globby from "globby"
+import {pathToIdPart} from "../utils/id"
 
 export const staticAssetsCollection = {
   children: async () =>

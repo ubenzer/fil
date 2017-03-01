@@ -1,6 +1,6 @@
+import {postSubfolder, staticAssetsSubfolder} from "../index"
 import {IMAGE_EXTENSIONS} from "./image"
 import path from "path"
-import {postSubfolder, staticAssetsSubfolder} from "../index"
 import replace from "replaceall"
 import {urlForPost} from "./url"
 
