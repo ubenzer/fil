@@ -1,5 +1,10 @@
+import React from "react"
 import {chunk} from "../../app/utils/misc"
 import {defaultHeadersFor} from "../utils/http"
+import path from "path"
+import {render} from "../utils/template"
+import {requireUncached} from "../utils/require"
+import {templatePath} from "../index"
 
 const calculatePagination = ({posts}) => {
   const paginatedContentIds = chunk({array: posts, chunkSize: 10})
@@ -14,19 +19,25 @@ const calculatePagination = ({posts}) => {
 const recentPostsCollectionHandler = {
   async handle({project, url}) {
     const pageNumber = Number(url.substr(1) || 1) - 1
-    const posts = (await project.metaOf({id: "postCollection"})).children
-    const postsInPage = calculatePagination({posts})[pageNumber]
+    const postIds = (await project.metaOf({id: "postCollection"})).children
+    const postsInPage = calculatePagination({posts: postIds})[pageNumber]
 
-    const postContents = await Promise.all(
+    const posts = await Promise.all(
       postsInPage.ids
-        .map((id) => project.valueOf({id}).then((value) => ({id, value})))
+        .map((id) => project.valueOf({id}).then((value) => ({id, ...value})))
     )
 
-    const content = postContents.reduce((acc, {value, id}) => `${acc}ÜÜÜ${value.htmlExcerpt}ÄÄÄ${id}`, "")
+    const Template = requireUncached(path.join(process.cwd(), templatePath, "multiplePosts")).default
+    const str = render({
+      jsx: <Template
+        pageNumber={pageNumber}
+        posts={posts}
+           />
+    })
 
     return {
-      body: content,
-      headers: defaultHeadersFor({defaultContentType: "text/html", url})
+      body: str,
+      headers: defaultHeadersFor({url: `${url}/index.html`})
     }
   },
   async handles({posts}) {
