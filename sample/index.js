@@ -10,6 +10,8 @@ import {postCollection} from "./contentTypes/postCollection"
 import {recentPostsCollectionHandler} from "./routes/recentPostsCollectionHandler"
 import {scaledImage} from "./contentTypes/scaledImage"
 import {singlePostHandler} from "./routes/singlePostHandler"
+import {sitemap} from "./contentTypes/sitemap"
+import {sitemapHandler} from "./routes/sitemapHandler"
 import {staticAssetHandler} from "./routes/staticAssetHandler"
 import {staticAssetsCollection} from "./contentTypes/staticAssetsCollection"
 import {stylus} from "./contentTypes/templateItems/stylus"
@@ -36,6 +38,7 @@ const project = {
       post,
       postCollection,
       scaledImage,
+      sitemap,
       staticAssetsCollection,
       stylus
     }
@@ -51,6 +54,7 @@ const project = {
       binaryPassthroughHandler,
       recentPostsCollectionHandler,
       singlePostHandler,
+      sitemapHandler,
       staticAssetHandler,
       templateCssHandler,
       templateStylusHandler

@@ -28,6 +28,9 @@ const urlForPostAttachment = ({id}) => {
   return slug(replaceall(path.sep, "/", p), {save: ["/", "."]})
 }
 
+const urlForSitemap = () => "/sitemap.xml"
+
 const isExternalUrl = ({url}) => url.includes("://") || url.startsWith("//")
 
-export {urlForTemplateCss, urlForPost, urlForPostAttachment, urlForTemplateStylus, isExternalUrl, urlForStaticAsset}
+export {urlForTemplateCss, urlForPost, urlForPostAttachment, urlForTemplateStylus, isExternalUrl, urlForStaticAsset,
+  urlForSitemap}
