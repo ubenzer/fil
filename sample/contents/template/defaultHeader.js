@@ -1,4 +1,4 @@
-import {defaultTitle, themeColor, titleTemplate} from "../../config"
+import {defaultTitle, locale, themeColor, titleTemplate} from "../../config"
 import Helmet from "react-helmet"
 import React from "react"
 import {urlForTemplateStylus} from "../../utils/url"
@@ -6,7 +6,7 @@ import {urlForTemplateStylus} from "../../utils/url"
 const DefaultHeader = () =>
   <Helmet
     defaultTitle={defaultTitle}
-    htmlAttributes={{lang: "tr"}}
+    htmlAttributes={{lang: locale}}
     link={[
       {href: urlForTemplateStylus(), media: "screen", rel: "stylesheet", type: "text/css"},
       {

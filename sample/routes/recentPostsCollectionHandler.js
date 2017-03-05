@@ -1,37 +1,39 @@
+import {dateSorter, postDateSelector, sort} from "../utils/sorting"
 import React from "react"
-import {chunk} from "../../app/utils/misc"
+import {calculatePagination} from "../utils/collection"
 import {defaultHeadersFor} from "../utils/http"
 import path from "path"
 import {render} from "../utils/template"
 import {requireUncached} from "../utils/require"
 import {templatePath} from "../index"
 
-const calculatePagination = ({posts}) => {
-  const paginatedContentIds = chunk({array: posts, chunkSize: 10})
-  return paginatedContentIds.map((ids, index, array) => {
-    const isFirstPage = index === 0
-    const isLastPage = index === array.length - 1
-    const pageNumber = index + 1
-    return {ids, isFirstPage, isLastPage, pageNumber}
-  })
-}
+const chunkSize = 10
 
 const recentPostsCollectionHandler = {
   async handle({project, url}) {
     const pageNumber = Number(url.substr(1) || 1) - 1
     const postIds = (await project.metaOf({id: "postCollection"})).children
-    const postsInPage = calculatePagination({posts: postIds})[pageNumber]
+    const posts = await Promise.all(postIds.map((id) => project.valueOf({id})))
 
-    const posts = await Promise.all(
-      postsInPage.ids
-        .map((id) => project.valueOf({id}).then((value) => ({id, ...value})))
-    )
+    const sortedPosts = sort({
+      array: posts,
+      reversed: true,
+      selectorFn: postDateSelector,
+      sorterFn: dateSorter
+    })
+
+    const page = calculatePagination({
+      array: sortedPosts,
+      chunkSize
+    })[pageNumber]
 
     const Template = requireUncached(path.join(process.cwd(), templatePath, "multiplePosts")).default
     const str = render({
       jsx: <Template
-        pageNumber={pageNumber}
-        posts={posts}
+        isFirstPage={page.isFirstPage}
+        isLastPage={page.isLastPage}
+        pageNumber={page.pageNumber}
+        posts={page.content}
            />
     })
 
@@ -41,7 +43,7 @@ const recentPostsCollectionHandler = {
     }
   },
   async handles({posts}) {
-    const paginatedPostCollection = calculatePagination({posts})
+    const paginatedPostCollection = calculatePagination({array: posts, chunkSize})
 
     return paginatedPostCollection.map(({isFirstPage}, index) => `/${isFirstPage ? "" : index}`)
   },

@@ -1,7 +1,7 @@
-import {chokidar$} from "../utils/chokidar"
-import {contentPath} from "../index"
-import {fsPromise} from "../../app/utils/misc"
-import {idToPath} from "../utils/id"
+import {chokidar$} from "../../utils/chokidar"
+import {contentPath} from "../../index"
+import {fsPromise} from "../../../app/utils/misc"
+import {idToPath} from "../../utils/id"
 import path from "path"
 
 export const file = {

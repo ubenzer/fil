@@ -2,20 +2,15 @@ import {BlogPost} from "./components/BlogPost"
 import Helmet from "react-helmet"
 import {MainContainer} from "./mainContainer"
 import React from "react"
+import {blogPostPropType} from "./propTypes"
 
-const template = ({title, htmlContent}) =>
+const template = ({post}) =>
   <MainContainer>
-    <Helmet title={title} />
-    <BlogPost
-      htmlContent={htmlContent}
-      title={title}
-    />
+    <Helmet title={post.title} />
+    <BlogPost post={post} />
   </MainContainer>
 
 
-template.propTypes = {
-  htmlContent: React.PropTypes.string.isRequired,
-  title: React.PropTypes.string.isRequired
-}
+template.propTypes = {post: blogPostPropType.isRequired}
 
 export default template

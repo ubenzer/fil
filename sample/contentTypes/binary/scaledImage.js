@@ -1,7 +1,7 @@
-import {fromGeneratedImagePath, idToPath, pathToIdPart} from "../utils/id"
-import {contentPath} from "../index"
+import {fromGeneratedImagePath, idToPath, pathToIdPart} from "../../utils/id"
+import {contentPath} from "../../index"
 import path from "path"
-import {resizeByWidth} from "../utils/image"
+import {resizeByWidth} from "../../utils/image"
 
 export const scaledImage = {
   content: async ({id, originalImage, width}) => {

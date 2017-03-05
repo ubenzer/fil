@@ -1,10 +1,10 @@
-import {idToPath, idToType, isPathImage, pathToIdPart} from "../utils/id"
-import {postPath, postSubfolder} from "../index"
-import {chokidar$} from "../utils/chokidar"
-import {fsPromise} from "../../app/utils/misc"
+import {idToPath, idToType, isPathImage, pathToIdPart} from "../../utils/id"
+import {postPath, postSubfolder} from "../../index"
+import {chokidar$} from "../../utils/chokidar"
+import {fsPromise} from "../../../app/utils/misc"
 import globby from "globby"
 import path from "path"
-import {rawContentToPostObject} from "../utils/post"
+import {rawContentToPostObject} from "../../utils/post"
 
 export const post = {
   children: async ({id}) => {
@@ -30,7 +30,8 @@ export const post = {
     }),
   content: async ({id, imageMetas, scaledImageIds}) => {
     const rawFileContent = await fsPromise.readFileAsync(path.join(postPath, idToPath({id}), "index.md"), "utf8")
-    return rawContentToPostObject({id, imageMetas, rawFileContent, scaledImageIds})
+    const p = await rawContentToPostObject({id, imageMetas, rawFileContent, scaledImageIds})
+    return {id, ...p}
   },
   contentArguments: async ({id, project}) => {
     const postAttachments = (await project.metaOf({id})).children
