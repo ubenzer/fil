@@ -1,14 +1,21 @@
 import {fsPromise, translateError} from "../utils/misc"
 import Gauge from "gauge"
+import debugc from "debug"
 import path from "path"
 
+const debug = debugc("fil:staticRenderer")
+
 export class StaticRenderer {
-  constructor({project}) {
+  constructor({project, outputHeaders}) {
     this._project = project
+    this._outputHeaders = outputHeaders
     this._gauge = new Gauge()
   }
 
   async render() {
+    debug(`Clearing output directory: ${this._project.outPath()}`)
+    await fsPromise.emptyDir(this._project.outPath())
+
     const urlListPerHandler = await this._project.handledUrlsPerHandler()
     const totalCount = Object.keys(urlListPerHandler)
       .reduce((acc, handlerId) => acc + urlListPerHandler[handlerId].length, 0)
@@ -37,12 +44,14 @@ export class StaticRenderer {
       pathToWrite = path.join(pathToWrite, "index.html")
     }
 
-    const headersFile = `${pathToWrite}.headers`
-
-    // noinspection JSUnresolvedFunction
-    return Promise.all([
-      fsPromise.outputFileAsync(pathToWrite, body),
-      fsPromise.outputJsonAsync(headersFile, headers)
-    ])
+    if (this._outputHeaders) {
+      const headersFile = `${pathToWrite}.headers`
+      // noinspection JSUnresolvedFunction
+      return Promise.all([
+        fsPromise.outputFileAsync(pathToWrite, body),
+        fsPromise.outputJsonAsync(headersFile, headers)
+      ])
+    }
+    return fsPromise.outputFileAsync(pathToWrite, body)
   }
 }
