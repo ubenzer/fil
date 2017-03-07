@@ -1,4 +1,5 @@
-import "source-map-support/register"
+#!/usr/bin/env node
+// import "source-map-support/register"
 import {ProjectRunner} from "../projectRunner"
 import exitHook from "async-exit-hook"
 import fs from "fs-extra"

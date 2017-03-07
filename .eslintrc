@@ -8,13 +8,8 @@
 
   "globals": {},
 
-  "plugins": [
-    "react"
-  ],
-
   "extends": [
-    "eslint:all",
-    "plugin:react/all"
+    "eslint:all"
   ],
 
   "parserOptions": {
@@ -48,10 +43,6 @@
     "multiline-ternary": "off",
     "padded-blocks": ["error", "never"],
     "prefer-destructuring": "off",
-    "react/no-danger": "off",
-    "react/jsx-filename-extension": "off",
-    "react/jsx-indent": ["error", 2],
-    "react/jsx-indent-props": ["error", 2],
     "require-await": "off",
     "semi": ["error", "never"],
     "space-before-function-paren": [2, "never"],
