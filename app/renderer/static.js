@@ -1,9 +1,6 @@
 import {fsPromise, translateError} from "../utils/misc"
 import Gauge from "gauge"
-import debugc from "debug"
 import path from "path"
-
-const debug = debugc("fil:staticRenderer")
 
 export class StaticRenderer {
   constructor({project, outputHeaders}) {
@@ -13,9 +10,6 @@ export class StaticRenderer {
   }
 
   async render() {
-    debug(`Clearing output directory: ${this._project.outPath()}`)
-    await fsPromise.emptyDir(this._project.outPath())
-
     const urlListPerHandler = await this._project.handledUrlsPerHandler()
     const totalCount = Object.keys(urlListPerHandler)
       .reduce((acc, handlerId) => acc + urlListPerHandler[handlerId].length, 0)
