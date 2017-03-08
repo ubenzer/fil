@@ -13,7 +13,6 @@
   "author": "Umut Benzer <umut@benzer.me>",
   "license": "MIT",
   "dependencies": {
-    "async-exit-hook": "^1.1.1",
     "bluebird": "^3.5.0",
     "browser-sync": "^2.18.8",
     "debug": "^2.6.1",

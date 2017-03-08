@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 // import "source-map-support/register"
 import {ProjectRunner} from "../projectRunner"
-import exitHook from "async-exit-hook"
 import fs from "fs-extra"
 import npid from "npid"
 import parseArgs from "minimist"
 import path from "path"
+import readline from "readline"
 
 /* eslint-disable no-console */
 console.info("=== Fil ===")
@@ -28,17 +28,36 @@ fs.ensureDirSync(pidFolder) // eslint-disable-line no-sync
 
 const pid = npid.create(path.join(pidFolder, "running.pid"), argv.force)
 
-exitHook((callback) => {
+if (process.platform === "win32") {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  })
+
+  rl.on("SIGINT", () => {
+    process.emit("SIGINT")
+  })
+}
+
+const cleanup = async () =>
   projectRunner.persistCache()
     .catch((e) => {
       console.error(e)
       pid.remove()
-      callback()
+      process.exitCode = 1
     })
     .then(() => {
-      console.info("Bye!")
       pid.remove()
-      callback()
+    })
+
+process.on("SIGINT", () => {
+  console.log("Preparing to shutdown...")
+  cleanup()
+    .then(() => {
+      process.exit(process.exitCode) // eslint-disable-line no-process-exit
+    })
+    .catch(() => {
+      process.exit(3) // eslint-disable-line no-process-exit
     })
 })
 
@@ -49,4 +68,13 @@ projectRunner.init()
     }
     return projectRunner.generateStatic()
   })
-  .catch(console.error)
+  .catch((e) => {
+    console.error(e)
+    process.exitCode = 2
+  })
+  .then(cleanup)
+  .then(() => {
+    if (process.exitCode !== 0) {
+      process.exit(process.exitCode) // eslint-disable-line no-process-exit
+    }
+  })
