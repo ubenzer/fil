@@ -54,7 +54,7 @@ process.on("SIGINT", () => {
   console.log("Preparing to shutdown...")
   cleanup()
     .then(() => {
-      process.exit(process.exitCode) // eslint-disable-line no-process-exit
+      process.exit(4) // eslint-disable-line no-process-exit
     })
     .catch(() => {
       process.exit(3) // eslint-disable-line no-process-exit
