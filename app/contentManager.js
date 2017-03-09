@@ -1,6 +1,6 @@
 import {binaryCacheTypes, binaryItemsFromDisk,
   binaryItemsToDisk, clearBinaryItemsFromDisk} from "./utils/binaryCacheHelpers"
-import {fsPromise, translateError} from "./utils/misc"
+import {readSafeJSON, translateError, writeSafeJSON} from "./utils/misc"
 import {Project} from "./project"
 import Rx from "rxjs/Rx"
 import debugc from "debug"
@@ -68,8 +68,7 @@ export class ContentManager {
         .reduce((acc, {id, cacheItemCopy}) => ({[id]: cacheItemCopy, ...acc}), {})
     const cache = {contents: cacheContentsWithoutFns}
     const filePath = path.join(this._project.cachePath(), "contents.json")
-    // noinspection JSUnresolvedFunction
-    return fsPromise.outputJsonAsync(filePath, cache)
+    return writeSafeJSON({object: cache, path: filePath})
   }
 
   disposeChangeListeners() {
@@ -87,8 +86,7 @@ export class ContentManager {
 
   async loadCache() {
     const filePath = path.join(this._project.cachePath(), "contents.json")
-    // noinspection JSUnresolvedFunction
-    const json = await fsPromise.readJsonAsync(filePath).catch(translateError)
+    const json = await readSafeJSON({path: filePath}).catch(translateError)
 
     if (json instanceof Error) {
       // Means we have no cache at all.

@@ -1,5 +1,5 @@
 import {binaryCacheTypes, binaryItemsFromDisk, binaryItemsToDisk} from "./utils/binaryCacheHelpers"
-import {fsPromise, translateError} from "./utils/misc"
+import {readSafeJSON, translateError, writeSafeJSON} from "./utils/misc"
 import {Project} from "./project"
 import debugc from "debug"
 import path from "path"
@@ -108,14 +108,12 @@ export class RouteManager {
         .reduce((acc, {id, cacheItemCopy}) => ({[id]: cacheItemCopy, ...acc}), {})
     const cache = {handlers: cacheHandlersWithoutFns}
     const filePath = path.join(this._project.cachePath(), "routes.json")
-    // noinspection JSUnresolvedFunction
-    return fsPromise.outputJsonAsync(filePath, cache)
+    return writeSafeJSON({object: cache, path: filePath})
   }
 
   async loadCache() {
     const filePath = path.join(this._project.cachePath(), "routes.json")
-    // noinspection JSUnresolvedFunction
-    const json = await fsPromise.readJsonAsync(filePath).catch(translateError)
+    const json = await readSafeJSON({path: filePath}).catch(translateError)
 
     if (json instanceof Error) {
       // Means we have no cache at all.

@@ -19,6 +19,7 @@ const binaryItemsToDisk = async ({id, type, json, cachePath, accountingKey}) => 
   // noinspection JSUnusedGlobalSymbols
   const iterator = deepIterator(json, {
     onlyLeaves: true,
+    // without this, iterator traverses whole Buffer byte by byte
     skipIteration: (node) => node.value instanceof Buffer
   })
 
