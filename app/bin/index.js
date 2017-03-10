@@ -43,14 +43,19 @@ const cleanup = async () =>
   projectRunner.persistCache()
     .catch((e) => {
       console.error(e)
-      pid.remove()
       process.exitCode = 1
     })
     .then(() => {
       pid.remove()
     })
 
+let sigintInProgress = false
 process.on("SIGINT", () => {
+  if (sigintInProgress) {
+    console.log("Dude, shutdown is already in progress... Get a faster machine or calm down.")
+    return
+  }
+  sigintInProgress = true
   console.log("Preparing to shutdown...")
   cleanup()
     .then(() => {
