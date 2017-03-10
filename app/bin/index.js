@@ -54,7 +54,8 @@ process.on("SIGINT", () => {
   console.log("Preparing to shutdown...")
   cleanup()
     .then(() => {
-      process.exit(4) // eslint-disable-line no-process-exit
+      // If we are in dynamic serving SIGINT is the correct way to exit.
+      process.exit(argv.dynamic ? 0 : 4) // eslint-disable-line no-process-exit
     })
     .catch(() => {
       process.exit(3) // eslint-disable-line no-process-exit
