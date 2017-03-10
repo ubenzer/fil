@@ -65,6 +65,9 @@ projectRunner.init()
   .then(() => {
     if (argv.dynamic) {
       return projectRunner.generateDynamic()
+        .then(() => new Promise(() => {
+          // prevent resolving forever.
+        }))
     }
     return projectRunner.generateStatic()
   })
