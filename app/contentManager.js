@@ -352,6 +352,7 @@ export class ContentManager {
     if (this._project._listenToChanges && // eslint-disable-line no-underscore-dangle
         !content.childrenSubscription && content.fn.childrenWatcher$ &&
         content.children !== null) {
+      debug(`Listening for child changes of ${id}`)
       content.childrenSubscription = content.fn.childrenWatcher$({id})
         .subscribe(this._onChildrenChangeFnFor.bind(this, {id}))
     }
