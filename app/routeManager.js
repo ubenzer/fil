@@ -1,10 +1,10 @@
-import {binaryCacheTypes, binaryItemsFromDisk, binaryItemsToDisk} from "./utils/binaryCacheHelpers"
-import {readSafeJSON, translateError, writeSafeJSON} from "./utils/misc"
-import {Project} from "./project"
-import debugc from "debug"
-import path from "path"
+import {binaryCacheTypes, binaryItemsFromDisk, binaryItemsToDisk} from './utils/binaryCacheHelpers'
+import {readSafeJSON, translateError, writeSafeJSON} from './utils/misc'
+import {Project} from './project'
+import debugc from 'debug'
+import path from 'path'
 
-const debug = debugc("fil:routeManager")
+const debug = debugc('fil:routeManager')
 
 export class RouteManager {
   constructor({project}) {
@@ -33,7 +33,7 @@ export class RouteManager {
 
     if (handlersIdsForUrl.length !== 1) {
       throw new Error(`"${url}" is handled by ${handlersIdsForUrl.length} handlers: 
-        ${handlersIdsForUrl.join(",")}`)
+        ${handlersIdsForUrl.join(',')}`)
     }
 
     return this._handleUrlVia({handlerId: handlersIdsForUrl[0], url})
@@ -107,12 +107,12 @@ export class RouteManager {
         })
         .reduce((acc, {id, cacheItemCopy}) => ({[id]: cacheItemCopy, ...acc}), {})
     const cache = {handlers: cacheHandlersWithoutFns}
-    const filePath = path.join(this._project.cachePath(), "routes.json")
+    const filePath = path.join(this._project.cachePath(), 'routes.json')
     return writeSafeJSON({object: cache, path: filePath})
   }
 
   async loadCache() {
-    const filePath = path.join(this._project.cachePath(), "routes.json")
+    const filePath = path.join(this._project.cachePath(), 'routes.json')
     const json = await readSafeJSON({path: filePath}).catch(translateError)
 
     if (json instanceof Error) {
@@ -148,5 +148,5 @@ export class RouteManager {
     })
   }
 }
-RouteManager.binaryFieldDesriptorKey = "_binaryFields"
+RouteManager.binaryFieldDesriptorKey = '_binaryFields'
 RouteManager.defaultHandlesArguments = async ({id}) => ({id})

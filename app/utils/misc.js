@@ -1,10 +1,10 @@
-import Promise from "bluebird"
+import Promise from 'bluebird'
 // noinspection NpmUsedModulesInstalled
-import deepIterator from "deep-iterator"
-import dotProp from "dot-prop-immutable"
-import fs from "fs-extra"
+import deepIterator from 'deep-iterator'
+import dotProp from 'dot-prop-immutable'
+import fs from 'fs-extra'
 
-const dateFieldValuePrefix = "@@::DATE--->"
+const dateFieldValuePrefix = '@@::DATE--->'
 
 // noinspection JSUnresolvedFunction
 const fsPromise = Promise.promisifyAll(fs)
@@ -32,13 +32,13 @@ const toJSON = ({object}) => {
 
 const fromJSON = ({string}) =>
   JSON.parse(string, (key, value) => {
-    if (!(typeof value === "string" && value.startsWith(dateFieldValuePrefix))) { return value }
+    if (!(typeof value === 'string' && value.startsWith(dateFieldValuePrefix))) { return value }
     const stringDate = value.substr(dateFieldValuePrefix.length)
     return new Date(stringDate)
   })
 
 const readSafeJSON = async ({path: p}) => {
-  const fileContents = await fsPromise.readFileAsync(p, "utf8")
+  const fileContents = await fsPromise.readFileAsync(p, 'utf8')
   return fromJSON({string: fileContents})
 }
 

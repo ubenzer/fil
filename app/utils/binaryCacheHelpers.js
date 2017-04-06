@@ -1,14 +1,14 @@
 // noinspection NpmUsedModulesInstalled
-import deepIterator from "deep-iterator"
-import dotProp from "dot-prop-immutable"
-import {fsPromise} from "./misc"
-import path from "path"
-import sanitize from "sanitize-filename"
+import deepIterator from 'deep-iterator'
+import dotProp from 'dot-prop-immutable'
+import {fsPromise} from './misc'
+import path from 'path'
+import sanitize from 'sanitize-filename'
 
 const pathForCacheItem = ({cachePath, id, type, keyPath}) => {
   const idParts = id.split(/(?:\/|\\|\||@|:)+/)
-  const sanitizedPathParts = [...idParts, `${type}--${keyPath.join("--")}`]
-    .map((ip) => sanitize(ip, {replacement: "_"}))
+  const sanitizedPathParts = [...idParts, `${type}--${keyPath.join('--')}`]
+    .map((ip) => sanitize(ip, {replacement: '_'}))
 
   return path.join(cachePath, ...sanitizedPathParts)
 }
@@ -64,10 +64,10 @@ const clearBinaryItemsFromDisk = async ({id, type, json, cachePath, accountingKe
 }
 
 const binaryCacheTypes = {
-  childrenArgs: "childrenArgs",
-  content: "content",
-  contentArgs: "contentArgs",
-  handlesArgs: "handlesArgs"
+  childrenArgs: 'childrenArgs',
+  content: 'content',
+  contentArgs: 'contentArgs',
+  handlesArgs: 'handlesArgs'
 }
 
 export {binaryItemsToDisk, binaryItemsFromDisk, clearBinaryItemsFromDisk, binaryCacheTypes}

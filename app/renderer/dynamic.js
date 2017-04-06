@@ -1,6 +1,6 @@
-import browserSync from "browser-sync"
-import http from "http"
-import {translateError} from "../utils/misc"
+import browserSync from 'browser-sync'
+import http from 'http'
+import {translateError} from '../utils/misc'
 
 /* eslint-disable no-console */
 export class DynamicRenderer {
@@ -18,7 +18,7 @@ export class DynamicRenderer {
       return
     }
 
-    if (url === "/?urlList") {
+    if (url === '/?urlList') {
       DynamicRenderer.renderUrlList({handledUrlList, response})
       return
     }
@@ -52,7 +52,7 @@ export class DynamicRenderer {
 
           bs.init({
             open: false,
-            proxy: "localhost:4000"
+            proxy: 'localhost:4000'
           })
           this._project.watcher$()
             .subscribe(() => {
@@ -65,17 +65,17 @@ export class DynamicRenderer {
 }
 DynamicRenderer.render404 = ({response}) => {
   response.writeHead(404)
-  response.end("404 - Nein!")
+  response.end('404 - Nein!')
 }
 DynamicRenderer.render500 = ({error, response}) => {
   console.error(error)
   response.writeHead(500)
-  response.end("<head></head><body>500 - Check console</body>")
+  response.end('<head></head><body>500 - Check console</body>')
 }
 DynamicRenderer.renderUrlList = ({handledUrlList, response}) => {
-  const body = [`${handledUrlList.length} urls`, ...handledUrlList].join("\n")
+  const body = [`${handledUrlList.length} urls`, ...handledUrlList].join('\n')
 
-  response.writeHead(200, {"Content-Type": "text/plain"})
+  response.writeHead(200, {'Content-Type': 'text/plain'})
   response.write(body)
   response.end()
 }

@@ -1,12 +1,12 @@
 import {binaryCacheTypes, binaryItemsFromDisk,
-  binaryItemsToDisk, clearBinaryItemsFromDisk} from "./utils/binaryCacheHelpers"
-import {readSafeJSON, translateError, writeSafeJSON} from "./utils/misc"
-import {Project} from "./project"
-import Rx from "rxjs/Rx"
-import debugc from "debug"
-import path from "path"
+  binaryItemsToDisk, clearBinaryItemsFromDisk} from './utils/binaryCacheHelpers'
+import {readSafeJSON, translateError, writeSafeJSON} from './utils/misc'
+import {Project} from './project'
+import Rx from 'rxjs/Rx'
+import debugc from 'debug'
+import path from 'path'
 
-const debug = debugc("fil:contentManager")
+const debug = debugc('fil:contentManager')
 
 export class ContentManager {
   constructor({project}) {
@@ -34,7 +34,7 @@ export class ContentManager {
     return {
       children: cachedContent.children,
       id,
-      type: id.split("@")[0]
+      type: id.split('@')[0]
     }
   }
 
@@ -67,7 +67,7 @@ export class ContentManager {
         })
         .reduce((acc, {id, cacheItemCopy}) => ({[id]: cacheItemCopy, ...acc}), {})
     const cache = {contents: cacheContentsWithoutFns}
-    const filePath = path.join(this._project.cachePath(), "contents.json")
+    const filePath = path.join(this._project.cachePath(), 'contents.json')
     return writeSafeJSON({object: cache, path: filePath})
   }
 
@@ -85,7 +85,7 @@ export class ContentManager {
   }
 
   async loadCache() {
-    const filePath = path.join(this._project.cachePath(), "contents.json")
+    const filePath = path.join(this._project.cachePath(), 'contents.json')
     const json = await readSafeJSON({path: filePath}).catch(translateError)
 
     if (json instanceof Error) {
@@ -123,7 +123,7 @@ export class ContentManager {
 
     if (!cachedContent.fn) {
       const handlers = this._project._project.contentTypes() // eslint-disable-line no-underscore-dangle
-      const handlerKey = id.split("@")[0]
+      const handlerKey = id.split('@')[0]
       const handler = handlers[handlerKey]
       if (!handler) {
         throw new Error(`Handler "${handlerKey}" can't be found for content "${id}"`)
@@ -361,4 +361,4 @@ export class ContentManager {
 ContentManager.defaultChildrenCalculator = async () => ({})
 ContentManager.defaultChildrenArguments = async ({id}) => ({id})
 ContentManager.defaultContentArguments = async ({id}) => ({id})
-ContentManager.binaryFieldDesriptorKey = "_binaryFields"
+ContentManager.binaryFieldDesriptorKey = '_binaryFields'

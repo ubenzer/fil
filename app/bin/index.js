@@ -1,19 +1,19 @@
 #!/usr/bin/env node
 // import "source-map-support/register"
-import {ProjectRunner} from "../projectRunner"
-import fs from "fs-extra"
-import npid from "npid"
-import parseArgs from "minimist"
-import path from "path"
-import readline from "readline"
+import {ProjectRunner} from '../projectRunner'
+import fs from 'fs-extra'
+import npid from 'npid'
+import parseArgs from 'minimist'
+import path from 'path'
+import readline from 'readline'
 
 /* eslint-disable no-console */
-console.info("=== Fil ===")
+console.info('=== Fil ===')
 console.info(`Running using node ${process.version}`)
 
-const argv = parseArgs(process.argv, {boolean: ["dynamic", "force", "nocache", "headers"]})
+const argv = parseArgs(process.argv, {boolean: ['dynamic', 'force', 'nocache', 'headers']})
 
-const projectRootFile = require(path.join(process.cwd(), "index.js")).default
+const projectRootFile = require(path.join(process.cwd(), 'index.js')).default
 // noinspection JSUnresolvedVariable
 const projectRunner = new ProjectRunner({
   listenToChanges: argv.dynamic,
@@ -26,16 +26,16 @@ const pidFolder = path.join(process.cwd(), projectRootFile.cachePath())
 
 fs.ensureDirSync(pidFolder) // eslint-disable-line no-sync
 
-const pid = npid.create(path.join(pidFolder, "running.pid"), argv.force)
+const pid = npid.create(path.join(pidFolder, 'running.pid'), argv.force)
 
-if (process.platform === "win32") {
+if (process.platform === 'win32') {
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
   })
 
-  rl.on("SIGINT", () => {
-    process.emit("SIGINT")
+  rl.on('SIGINT', () => {
+    process.emit('SIGINT')
   })
 }
 
@@ -50,13 +50,13 @@ const cleanup = async () =>
     })
 
 let sigintInProgress = false
-process.on("SIGINT", () => {
+process.on('SIGINT', () => {
   if (sigintInProgress) {
-    console.log("Dude, shutdown is already in progress... Get a faster machine or calm down.")
+    console.log('Dude, shutdown is already in progress... Get a faster machine or calm down.')
     return
   }
   sigintInProgress = true
-  console.log("Preparing to shutdown...")
+  console.log('Preparing to shutdown...')
   cleanup()
     .then(() => {
       // If we are in dynamic serving SIGINT is the correct way to exit.

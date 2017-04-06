@@ -1,14 +1,14 @@
-import {clearCache, readHash, writeHash} from "./utils/cache"
-import {ContentManager} from "./contentManager"
-import {RouteManager} from "./routeManager"
-import Rx from "rxjs/Rx"
-import debugc from "debug"
-import deepEql from "deep-eql"
-import os from "os"
-import path from "path"
-import uuidV1 from "uuid/v1"
+import {clearCache, readHash, writeHash} from './utils/cache'
+import {ContentManager} from './contentManager'
+import {RouteManager} from './routeManager'
+import Rx from 'rxjs/Rx'
+import debugc from 'debug'
+import deepEql from 'deep-eql'
+import os from 'os'
+import path from 'path'
+import uuidV1 from 'uuid/v1'
 
-const debug = debugc("fil:project")
+const debug = debugc('fil:project')
 
 export class Project {
   constructor({listenToChanges, project, useCache}) {
@@ -22,10 +22,10 @@ export class Project {
   /* init & dispose logic */
   async initCache() {
     if (!this._useCache) {
-      debug("Cache will not be used")
+      debug('Cache will not be used')
       return
     }
-    debug("Checking if project is changed while fil is not running")
+    debug('Checking if project is changed while fil is not running')
     const cachePath = this._project.cachePath()
     const [currentHash, cachedHash] = await Promise.all([
       this._project.contentVersion(),
@@ -34,7 +34,7 @@ export class Project {
     debug(`Current: ${currentHash} Cached: ${cachedHash}`)
 
     if (currentHash !== cachedHash) {
-      debug("Cache will be ignored.")
+      debug('Cache will be ignored.')
       await clearCache({cachePath})
       debug(`Deleted up obsolete cache data... (${cachePath})`)
       return
@@ -81,7 +81,7 @@ export class Project {
   /* Cache persistence */
   async persistCache() {
     if (!this._useCache) { return }
-    debug("Persisting cache")
+    debug('Persisting cache')
 
     const cachePath = this._project.cachePath()
     const hash = await this._project.contentVersion()

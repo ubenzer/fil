@@ -1,6 +1,6 @@
-import {DynamicRenderer} from "./renderer/dynamic"
-import {Project} from "./project"
-import {StaticRenderer} from "./renderer/static"
+import {DynamicRenderer} from './renderer/dynamic'
+import {Project} from './project'
+import {StaticRenderer} from './renderer/static'
 
 export class ProjectRunner {
   constructor({project, listenToChanges, outputHeaders, useCache}) {
