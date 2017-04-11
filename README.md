@@ -46,9 +46,13 @@ A `fil` website has two parts:
 a feature to library itself. Compiler is responsible for:
 
     a. Read project config.
+
     b. Managing content lifecycle. Accounting.
+
     c. Providing a http server dynamic mode, refreshing pages on content change.
+
     d. Generating static website for production.
+    
     e. Caching of contents for speedy recompilations.
 
 2. The project: This is your website project. It contains whole files that is related with your website. Usually this contains the following:
