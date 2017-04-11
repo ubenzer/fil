@@ -7,43 +7,37 @@
 [![Codecov](https://img.shields.io/codecov/c/github/ubenzer/fil.svg?maxAge=3600&style=flat-square)](https://codecov.io/gh/ubenzer/fil)
 [![npm](https://img.shields.io/npm/v/fil.svg?maxAge=3600&style=flat-square)](https://www.npmjs.com/package/fil)
 [![npm](https://img.shields.io/npm/dt/fil.svg?maxAge=3600&style=flat-square)](https://www.npmjs.com/package/fil)
-   
-Fil is a static content engine that can be used to host no-so-dynamic web sites such as blogs, technical documents, 
+
+Fil is a static content engine that can be used to host no-so-dynamic web sites such as blogs, technical documents,
 internal company tech wikies and content management systems.
 
 ## Features
 1. Super fast!
-2. Supports multiple content hierarchies (date archive, (sub)categories, tags, people etc.) via configuration files.
-3. Uses Pug as template engine.
-4. You can hook your own asset build system for icons, images, javascripts files etc.
-5. Supports static "page"s. (special content such as home page, contact page etc.)
+2. No assumptions made. We think everyone's content organization is different. So we only provide basics.
 
-## How get started
-A cli is planned for future releases but for now, everything is manual :/ Feel free to improve this process.
+### What do you mean with no assumptions, only basics?
+Fil provides a way to define 'content type's that represents **any kind of data** from **any kind of source** with any kind of **validity rule** in **any kind of hierarchy**
+ of __your__ decision.
 
+Fil also provides way to define 'url's which supposed to generate some output using the contents that is a part of 'content type's mentioned above.
+
+Fil manages them. Manages their life cycle. Therefore you can **instantly see** your new content while preparing it, and still be able to generate whole web page in one go to
+ deploy it as a **static website** to your production.
+
+## How get started with a new project
 0. Please check that your system conforms [requirements](#requirements).
-1. Install `fil` globally: `npm i -g fil` 
- 
-At this point you installed `fil` successfully! Now you need a starter project, a basic template with sample
-posts that demonstrates `fil`'s various features. This way, it will be faster to start.
- 
-0. Navigate to a folder that you want to install stater-project.
-1. Clone latest version of starter project: `git clone --depth 1 https://github.com/ubenzer/fil-starter-project.git`
-2. Starter project will be in `fil-starter-project` folder. If you want, you can rename it.
-3. Go into starter project directory. `cd fil-starter-project`.
-4. Install dependencies of starter project. `npm i`.
-5. To customize most of the settings, you can edit `config.js`.
-6. To build it via `fil`, run `fil` on your console. If you want to build continiously you can type `fil --watch`.
-7. That is it, it is built into `dist` folder!
-8. Run `npm run serve` to start a web server on `http://localhost:8765` to view your brand new static web site.
-
-To learn more about starter project and development specifics tasks, see 
-[README of starter project](https://github.com/ubenzer/fil-starter-project).
+1. Install `fil` globally: `npm i -g fil`
+2. At this point you installed `fil` successfully! Now you need a starter project, a basic template with sample
+ content that demonstrates `fil`'s usage. However, we don't have it yet. :( Yeah that is stupid but that this
+ is a work in progress. At some point, there will be a sample starter project which could be cloned. Meanwhile
+ you should follow API documentation and create everything for scratch.
+3. To see your website in dynamic mode for development purposes use `fil --dynamic`
+4. To compile your website into static pages to host them for production use `fil`.
+5. That is it, your website is built into `dist` folder! Do whatever you want with it. Push to Github Pages, s3 etc.
 
 ## Requirements
-1. Node.js 6.5.0+
+1. Node.js 7.8.0+
 2. npm 3.x
-3. System libraries required for [sharp](http://sharp.readthedocs.io/en/stable/install/).
 
 ## Architecture
 A `fil` website has two parts:
@@ -52,44 +46,29 @@ A `fil` website has two parts:
 a feature to library itself. Compiler is responsible for:
 
     a. Read project config.
-    
-    b. Compile contents to HTML.
-    
-    c. Process content images into requested sizes and formats.
-    
-    d. Create collection and category pages using content based on project config.
-    
-    e. Create static pages (pages that doesn't depend on a content)
-    
-    f. Run asset generation script defined on project config to prepare frontend assets. (e.g. compile sass, minify js
-     files etc.)
-  
-2. The project: It is the whole project files that is related with your website. Usually this contains the following:
+    b. Managing content lifecycle. Accounting.
+    c. Providing a http server dynamic mode, refreshing pages on content change.
+    d. Generating static website for production.
+    e. Caching of contents for speedy recompilations.
 
-    a. `config.js`: A config file that tells the compiler what to do, which kind of collections to create,
-     how to process images etc.
-     
-    b. `contents/`: Contents, that are going to be compiled to HTML using a template based on rules in config.
-    
-    c. `template/`: Templates, that are skeletons for web site, they will be merged with contents and compiled down
-     to actual website.
-     
-    d. `site/`: Frontend related stuff, such as theme images, javascript files and stylesheets, that are not a part
-     of content, and creation/compiling of this assets are not managed by compiler but it is managed by the project.
-     
-The structure of the project is not enforced anyway. The described structure is a part of 
-[fil-starter-project](https://github.com/ubenzer/fil-starter-project) but one can use a completely different 
-approach. Only real requirement for the compiler is that, the project needs to provide a config file.
-Rest is up to the project.
+2. The project: This is your website project. It contains whole files that is related with your website. Usually this contains the following:
+
+    a. `index.js`: Entrypoint to your project: A file that tells `fil` everything that is required to build the project.
+
+    b. Content Types: Skeletons that defines how to find, watch and organize your contents. Metadata of contents.
+
+    c. Contents: Actual contents that fits a Content Type description. Everything that is used in website including **templates, frontend javascript,
+    css, static image files, posts etc. are ALL contents**. Contents doesn't generate output.
+
+    d. Routes: Provide a list of URLs that they'll handle based on the contents available. **Routes are the only thing that are responsible to generate output.**
+
+You can have as much as and as different as Content Types, Contents and Routes as you want. It is up to you.
 
 ## ROADMAP
-The following features are planned. Not in particular order.
-1. "Content snippet"s that are not a part of taxonomy which can be included as a part of static pages.
-2. Better handling of async tasks.
-3. Better caching.
-4. Ability to run compiler partially. (e.g. only build pages but not categories etc.)
-5. Hook mechanism similar to frontend build system hook for publishing.
-6. Improve code coverage.
+The following features are planned considered. Not in particular order. And no promises.
+1. Graceful 404 and 500 pages in dynamic mode.
+2. Finding urls that points to non existent things in the output.
+3. Tests. :(
 
 ## Contributing
 No defined way of contributing yet. Just go wild. %-) If you are planning to add a new feature, open a PR and let's
@@ -99,25 +78,22 @@ discuss it first.
 To setup your development environment, first please check you have the things described in
 Requirements section are met.
 
-Fil is written in `typescript`. Therefore we recommend you to have the following global node packages:
-`npm i -g typescript typings` 
-
-Although these are not mandatory, they will make your life easier.
-
 Clone latest master to your local box:
 `git clone git@github.com:ubenzer/fil.git`
 
 Run `npm i` to install dependencies.
 
-To compile `typescript` to `javascript` you can run `npm run dev:compile`. There is no automatic wacth & compile
-method available at this point.
+Run it using `babel-node` instead of `node` so it'll transpile everything into regular ES5.
 
-To install type definitions you can run `npm run dev:typings`.
+e.g.
 
-If you want to compile a project using `fil`'s master version, you can call fil like this:
 ```sh
-# In the working directory of the website project
-node /PATH/TO/FIL/build/app/cli.js
+# Let's say...
+# Your development fil is in fil folder
+# Your sample website that you test your changes is in my-fil-website folder
+
+cd my-fil-website
+../fil/node_modules/.bin/babel-node ../fil/app/bin/index.js --dynamic --nocache --force
 ```
 
 ## Alternatives
