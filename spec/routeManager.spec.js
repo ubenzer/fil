@@ -1,6 +1,6 @@
 import {Project} from '../app/project'
 import {RouteManager} from '../app/routeManager'
-import {it} from 'jasmine-await'
+import {it} from 'jasmine-promise-wrapper'
 
 const mockProject = new Project({
   project: {
