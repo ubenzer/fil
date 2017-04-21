@@ -1,6 +1,6 @@
 {
   "name": "fil",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "A superfast static site generator",
   "scripts": {
     "compile": "shx rm -r compiled && babel app -d compiled",
