@@ -7,7 +7,7 @@ const mockProject = new Project({
     routeHandlers: () => ({
       testHandler1: {
         handles: async () => ['a'],
-        handlesArguments: async () => ({}),
+        handlesArguments: async () => ({})
       }
     })
   }
