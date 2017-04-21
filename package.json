@@ -5,7 +5,8 @@
   "scripts": {
     "compile": "shx rm -r compiled && babel app -d compiled",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "test": "nyc --all spec/run.js"
   },
   "bin": {
     "fil": "./compiled/bin/index.js"
@@ -15,7 +16,7 @@
   "dependencies": {
     "bluebird": "^3.5.0",
     "browser-sync": "^2.18.8",
-    "debug": "^2.6.3",
+    "debug": "^2.6.4",
     "deep-eql": "^2.0.1",
     "deep-iterator": "^1.1.0",
     "dot-prop-immutable": "^1.3.1",
@@ -32,7 +33,11 @@
     "babel-core": "^6.24.1",
     "babel-plugin-transform-object-rest-spread": "^6.23.0",
     "babel-preset-es2015": "^6.24.1",
+    "coveralls": "^2.13.0",
     "eslint": "^3.19.0",
+    "jasmine": "^2.5.3",
+    "jasmine-await": "0.0.3",
+    "nyc": "^10.2.0",
     "shx": "^0.2.2",
     "source-map-support": "^0.4.14"
   },
@@ -52,5 +57,15 @@
   "bugs": {
     "url": "https://github.com/ubenzer/fil/issues"
   },
-  "preferGlobal": true
+  "preferGlobal": true,
+  "nyc": {
+    "include": [
+      "app/**"
+    ],
+    "reporter": [
+      "lcov",
+      "text",
+      "json"
+    ]
+  }
 }
