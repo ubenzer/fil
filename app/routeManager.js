@@ -149,4 +149,4 @@ export class RouteManager {
   }
 }
 RouteManager.binaryFieldDesriptorKey = '_binaryFields'
-RouteManager.defaultHandlesArguments = async ({id}) => ({id})
+RouteManager.defaultHandlesArguments = async () => ({})
