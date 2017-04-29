@@ -1,6 +1,7 @@
-import {fsPromise, translateError} from '../utils/misc'
 import Gauge from 'gauge'
+import fs from 'fs-extra'
 import path from 'path'
+import {translateError} from '../utils/misc'
 
 export class StaticRenderer {
   constructor({project, outputHeaders}) {
@@ -42,10 +43,10 @@ export class StaticRenderer {
       const headersFile = `${pathToWrite}.headers`
       // noinspection JSUnresolvedFunction
       return Promise.all([
-        fsPromise.outputFileAsync(pathToWrite, body),
-        fsPromise.outputJsonAsync(headersFile, headers)
+        fs.outputFil(pathToWrite, body),
+        fs.outputJson(headersFile, headers)
       ])
     }
-    return fsPromise.outputFileAsync(pathToWrite, body)
+    return fs.outputFile(pathToWrite, body)
   }
 }

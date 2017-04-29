@@ -1,13 +1,9 @@
-import Promise from 'bluebird'
 // noinspection NpmUsedModulesInstalled
 import deepIterator from 'deep-iterator'
 import dotProp from 'dot-prop-immutable'
 import fs from 'fs-extra'
 
 const dateFieldValuePrefix = '@@::DATE--->'
-
-// noinspection JSUnresolvedFunction
-const fsPromise = Promise.promisifyAll(fs)
 
 // https://gist.github.com/spion/8c9d8556697ed61108177164e90fb50d
 const translateError = (e) => e
@@ -38,13 +34,13 @@ const fromJSON = ({string}) =>
   })
 
 const readSafeJSON = async ({path: p}) => {
-  const fileContents = await fsPromise.readFileAsync(p, 'utf8')
+  const fileContents = await fs.readFile(p, 'utf8')
   return fromJSON({string: fileContents})
 }
 
 const writeSafeJSON = async ({path: p, object}) => {
   const jsonString = toJSON({object})
-  return fsPromise.outputFileAsync(p, jsonString)
+  return fs.outputFile(p, jsonString)
 }
 
-export {fsPromise, translateError, readSafeJSON, writeSafeJSON}
+export {translateError, readSafeJSON, writeSafeJSON}

@@ -1,7 +1,7 @@
 // noinspection NpmUsedModulesInstalled
 import deepIterator from 'deep-iterator'
 import dotProp from 'dot-prop-immutable'
-import {fsPromise} from './misc'
+import fs from 'fs-extra'
 import path from 'path'
 import sanitize from 'sanitize-filename'
 
@@ -36,7 +36,7 @@ const binaryItemsToDisk = async ({id, type, json, cachePath, accountingKey}) => 
   await Promise.all(binaryFields.map(({value, path: p}) => {
     const filePath = pathForCacheItem({cachePath, id, keyPath: p, type})
     // noinspection JSUnresolvedFunction
-    return fsPromise.outputFileAsync(filePath, value)
+    return fs.outputFile(filePath, value)
   }))
 
   return newJson
@@ -48,7 +48,7 @@ const binaryItemsFromDisk = async ({id, type, json, cachePath, accountingKey}) =
   const binaryFields = json[accountingKey] || []
   const binaryPaths = binaryFields.map((bf) => pathForCacheItem({cachePath, id, keyPath: bf, type}))
   // noinspection JSUnresolvedFunction
-  const binaryDataArr = await Promise.all(binaryPaths.map((bp) => fsPromise.readFileAsync(bp)))
+  const binaryDataArr = await Promise.all(binaryPaths.map((bp) => fs.readFile(bp)))
   const newJson = binaryDataArr.reduce((acc, bd, idx) => dotProp.set(acc, binaryFields[idx], bd), json)
   delete newJson[accountingKey]
   return newJson
@@ -60,7 +60,7 @@ const clearBinaryItemsFromDisk = async ({id, type, json, cachePath, accountingKe
   const binaryFields = json[accountingKey] || []
   const binaryPaths = binaryFields.map((bf) => pathForCacheItem({cachePath, id, keyPath: bf, type}))
   // noinspection JSUnresolvedFunction
-  return Promise.all(binaryPaths.map((bp) => fsPromise.removeAsync(bp)))
+  return Promise.all(binaryPaths.map((bp) => fs.remove(bp)))
 }
 
 const binaryCacheTypes = {
