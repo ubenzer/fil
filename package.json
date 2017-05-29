@@ -1,6 +1,6 @@
 {
   "name": "fil",
-  "version": "4.0.2",
+  "version": "5.0.2",
   "description": "A superfast static site generator",
   "scripts": {
     "compile": "shx rm -r compiled && babel app -d compiled",
@@ -14,7 +14,6 @@
   "author": "Umut Benzer <umut@benzer.me>",
   "license": "MIT",
   "dependencies": {
-    "@material/button": "^0.3.6",
     "browser-sync": "^2.18.12",
     "debug": "^2.6.8",
     "deep-eql": "^2.0.2",
