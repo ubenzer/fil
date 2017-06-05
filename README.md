@@ -11,6 +11,10 @@
 Fil is a static content engine that can be used to host no-so-dynamic web sites such as blogs, technical documents,
 internal company tech wikies and content management systems.
 
+# Demo and Samples
+1. This blog can be used as a **clone-to-start** for your own blog. [Repo](https://github.com/ubenzer/fil-blog) | [Demo](https://fil.ubenzer.com/)
+2. This is my real blog that uses Fil under the hood and hosted via Github Pages. [Click to Go](https://ubenzer.com/)
+
 ## Features
 1. Super fast!
 2. No assumptions made. We think everyone's content organization is different. So we only provide basics.
@@ -67,6 +71,9 @@ a feature to library itself. Compiler is responsible for:
     d. Routes: Provide a list of URLs that they'll handle based on the contents available. **Routes are the only thing that are responsible to generate output.**
 
 You can have as much as and as different as Content Types, Contents and Routes as you want. It is up to you.
+
+## API
+To describe in the future. :( Yeah this is annoying...
 
 ## ROADMAP
 The following features are planned considered. Not in particular order. And no promises.
