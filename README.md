@@ -1,7 +1,6 @@
 # Fil
 
-[![Gitter](https://img.shields.io/gitter/room/ubenzer/fil.svg?maxAge=2592000&style=flat-square)](https://gitter.im/ubenzer/fil)
-[![Travis](https://img.shields.io/travis/ubenzer/fil.svg?maxAge=3600&style=flat-square)](https://travis-ci.org/ubenzer/fil)
+[![Gitter](https://img.shields.io/gitter/room/ubenzer/fil.svg?maxAge=2592000&style=flat-square)](https://gitter.im/ubenzer/fil) [![Travis](https://img.shields.io/travis/ubenzer/fil.svg?maxAge=3600&style=flat-square)](https://travis-ci.org/ubenzer/fil)
 [![David](https://img.shields.io/david/ubenzer/fil.svg?maxAge=3600&style=flat-square)](https://david-dm.org/ubenzer/fil)
 [![David](https://img.shields.io/david/dev/ubenzer/fil.svg?maxAge=3600&style=flat-square)](https://david-dm.org/ubenzer/fil#info=devDependencies)
 [![Codecov](https://img.shields.io/codecov/c/github/ubenzer/fil.svg?maxAge=3600&style=flat-square)](https://codecov.io/gh/ubenzer/fil)
@@ -11,83 +10,77 @@
 Fil is a static content engine that can be used to host no-so-dynamic web sites such as blogs, technical documents,
 internal company tech wikies and content management systems.
 
-# Demo and Samples
-1. This blog can be used as a **clone-to-start** for your own blog. [Repo](https://github.com/ubenzer/fil-blog) | [Demo](https://fil.ubenzer.com/)
-2. This is my real blog that uses Fil under the hood and hosted via Github Pages. [Click to Go](https://ubenzer.com/)
+## Demo and Samples
 
-## Features
+1. This blog can be used as a **clone-to-start** for your own blog. [[Repo](https://github.com/ubenzer/fil-blog) | [Demo](https://fil.ubenzer.com/)]
+2. This is my real blog that uses Fil under the hood and hosted via Github Pages. [[Click to Go](https://ubenzer.com/)]
+
+## Features of Fil
+
 1. Super fast!
-2. No assumptions made. We think everyone's content organization is different. So we only provide basics.
+2. **No assumptions made.** We think everyone's content organization is different. So we only provide basics.
 
 ### What do you mean with no assumptions, only basics?
-Fil provides a way to define 'content type's that represents **any kind of data** from **any kind of source** with any kind of **validity rule** in **any kind of hierarchy**
- of __your__ decision.
+Fil provides a way to define 'content type's that represents **any kind of data** from **any kind of source** with any kind of **validity rule** in **any kind of hierarchy** of __your__ decision.
 
-Fil also provides way to define 'url's which supposed to generate some output using the contents that is a part of 'content type's mentioned above.
+Fil also provides a way to define outputs. Each output is accessed by a url of your choice.
 
-Fil manages them. Manages their life cycle. Therefore you can **instantly see** your new content while preparing it, and still be able to generate whole web page in one go to
- deploy it as a **static website** to your production.
+Fil manages them and their life cycle. Therefore you can **instantly see** a preview of your new content while editing it, and still be able to generate whole web page in one go to deploy it as a **static website** to your production.
 
-## How get started with a new project
-0. Please check that your system conforms [requirements](#requirements).
-1. Install `fil` globally: `npm i -g fil`
-2. At this point you installed `fil` successfully! Now you need a starter project, a basic template with sample
- content that demonstrates `fil`'s usage. However, we don't have it yet. :( Yeah that is stupid but that this
- is a work in progress. At some point, there will be a sample starter project which could be cloned. Meanwhile
- you should follow API documentation and create everything for scratch.
-3. To see your website in dynamic mode for development purposes use `fil --dynamic`
-4. To compile your website into static pages to host them for production use `fil`.
-5. That is it, your website is built into `dist` folder! Do whatever you want with it. Push to Github Pages, s3 etc.
+## Get started with a new fil project
+**Please check that your system conforms [requirements](#requirements).**
+
+Now you have two choices. You can start by cloning an starter template such as [fil-blog](https://github.com/ubenzer/fil-blog). This ensures that basics are set up and you can start modifying it for your needs. **We recommend to go this way, until a better way is introduced.**
+
+If you want to start over, read [API](#api) docs and use it as you wish. :-)
+
+You can also install `fil` is a global package via `npm i -g fil` and use it that way. See all parameters [here](#fil-executable).
 
 ## Requirements
 1. Node.js 7.8.0+
 2. npm 3.x
 
-## Architecture
+## Architecture & Overview
 A `fil` website has two parts:
 
-1. The compiler: It is the `fil` package you installed via npm. Normally, you use it as is, if you are not developing
-a feature to library itself. Compiler is responsible for:
+1. The compiler: It is the `fil` package you installed via npm. Normally, you use it as is, if you are not developing a feature to library itself. Compiler is responsible for:
 
-    a. Read project config.
+      a. Read project config.
 
-    b. Managing content lifecycle. Accounting.
+      b. Managing content lifecycle. Accounting.
 
-    c. Providing a http server dynamic mode, refreshing pages on content change.
+      c. Providing a http server dynamic mode, refreshing pages on content change.
 
-    d. Generating static website for production.
-    
-    e. Caching of contents for speedy recompilations.
+      d. Generating static website for production.
+
+      e. Caching of contents for speedy recompilations.
 
 2. The project: This is your website project. It contains whole files that is related with your website. Usually this contains the following:
 
-    a. `index.js`: Entrypoint to your project: A file that tells `fil` everything that is required to build the project.
+    a. **`index.js`:** Entrypoint to your project: A file that tells `fil` everything that is required to build the project.
 
-    b. Content Types: Skeletons that defines how to find, watch and organize your contents. Metadata of contents.
+    b. **Content Types:** Skeletons that defines how to find, watch and organize your contents. Metadata of contents.
 
-    c. Contents: Actual contents that fits a Content Type description. Everything that is used in website including **templates, frontend javascript,
-    css, static image files, posts etc. are ALL contents**. Contents doesn't generate output.
+    c. **Contents:** Actual contents that fits a Content Type description. Everything that is used in website including **templates, frontend javascript, css, static image files, posts etc. are ALL contents**. Contents doesn't generate output.
 
-    d. Routes: Provide a list of URLs that they'll handle based on the contents available. **Routes are the only thing that are responsible to generate output.**
+    d. **Routes:** Provide a list of URLs that they'll handle based on the contents available. **Routes are the only thing that are responsible to generate output.**
 
-You can have as much as and as different as Content Types, Contents and Routes as you want. It is up to you.
+You can have unlimited amount of different content types, contents and routes. It is up to you.
 
 ## API
 To describe in the future. :( Yeah this is annoying...
 
-## ROADMAP
+## Roadmap
 The following features are planned considered. Not in particular order. And no promises.
 1. Graceful 404 and 500 pages in dynamic mode.
 2. Finding urls that points to non existent things in the output.
-3. Tests. :(
+3. Tests.
 
 ## Contributing
-No defined way of contributing yet. Just go wild. %-) If you are planning to add a new feature, open a PR and let's
-discuss it first.
+No defined way of contributing yet. Just go wild. %-) If you are planning to add a new feature, open a PR and let's discuss it first.
 
 ## Setting up development environment
-To setup your development environment, first please check you have the things described in
-Requirements section are met.
+To setup your development environment, first please check you have the things described in [requirements](#requirements) section are met.
 
 Clone latest master to your local box:
 `git clone git@github.com:ubenzer/fil.git`
@@ -107,6 +100,28 @@ cd my-fil-website
 ../fil/node_modules/.bin/babel-node ../fil/app/bin/index.js --dynamic --nocache --force
 ```
 
+## Fil Executable
+
+`fil` Compiles your website into static pages to host them for production use. 
+
+`fil --dynamic` Starts a development server with change detection and auto reloading features to enable users to add/change content and instantly see the results. **Do not use dynamic mode to host production websites.**
+
+Static and dynamic rendering generates the same output. Static rendering is optimized for speed and production use. Dynamic rendering is optimized for early feedback and development use.
+
+`fil --force` Normally you can't start more than one `fil` instances for the same fil project. You can use the force to skip this limitation. Be warned though, cache might go crazy!
+
+`fil --headers` Normally on static mode HTTP headers are not generated. If you pass this parameter, fil will generate a `.headers` file for each generated file which contains HTTP headers generated for that page. You can configure your production server to use header information in this files. This has no effect on `—dynamic` mode.
+
+`fil --nocache` Normally fil projects are cached for speedy incremental builds. By using this option you can skip cache for one time.
+
 ## Alternatives
-Fil is a project work in progress and no commitments made at this point. If you need a more mature project, you can
-check [Jekyll](https://jekyllrb.com/) (ruby), [Hexo](https://hexo.io) (js) or [Hugo](https://gohugo.io/)(go).
+
+Fil is a project work in progress and no commitments made at this point. If you need a more mature project, you can check [Jekyll](https://jekyllrb.com/) (ruby), [Hexo](https://hexo.io) (js) or [Hugo](https://gohugo.io/)(go).
+
+### Why you should prefer Fil?
+
+TBD
+
+### Why you should not prefer Fil?
+
+TDB

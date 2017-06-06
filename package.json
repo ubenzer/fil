@@ -56,7 +56,6 @@
   "bugs": {
     "url": "https://github.com/ubenzer/fil/issues"
   },
-  "preferGlobal": true,
   "nyc": {
     "include": [
       "app/**"
