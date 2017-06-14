@@ -43,7 +43,7 @@ You can also install `fil` is a global package via `npm i -g fil` and use it tha
 ## Architecture & Overview
 A `fil` website has two parts:
 
-1. The compiler: It is the `fil` package you installed via npm. Normally, you use it as is, if you are not developing a feature to library itself. Compiler is responsible for:
+1. **The compiler:** It is the `fil` package you installed via npm. Normally, you use it as is, if you are not developing a feature to library itself. Compiler is responsible for:
 
       a. Read project config.
 
@@ -55,7 +55,7 @@ A `fil` website has two parts:
 
       e. Caching of contents for speedy recompilations.
 
-2. The project: This is your website project. It contains whole files that is related with your website. Usually this contains the following:
+2. **The project:** This is your website project. It contains whole files that is related with your website. Usually this contains the following:
 
     a. **`index.js`:** Entrypoint to your project: A file that tells `fil` everything that is required to build the project.
 
@@ -67,10 +67,12 @@ A `fil` website has two parts:
 
 You can have unlimited amount of different content types, contents and routes. It is up to you.
 
-## API
-To describe in the future. :( Yeah this is annoying...
+## API & Project Definition
+You can find required information and interfaces to create your own Fil project in [PROJECT.md](PROJECT.md).
 
-## Roadmap
+If you want to use Fil programatiaclly, you can find API definition in API.md in the future.
+
+## Roadmap 
 The following features are planned considered. Not in particular order. And no promises.
 1. Graceful 404 and 500 pages in dynamic mode.
 2. Finding urls that points to non existent things in the output.
@@ -120,8 +122,13 @@ Fil is a project work in progress and no commitments made at this point. If you 
 
 ### Why you should prefer Fil?
 
-TBD
+1. You want to control every single line generated for your website.
+2. You have a unique content organisation and none of the out of the box solutions that other static site generators offer doesn't fit you nicely and you need to tinker them by plugins etc. hoping that it work.
+3. You want to use your companies proprietary template engine or data store.
+4. You want to try something new. 
 
 ### Why you should not prefer Fil?
 
-TDB
+1. Fil is not mature and there is no community contribution (yet). Therefore you should accept there there will be situations that you should 'dive into the project' and figure out/fix yourself.
+2. Fil doesn't have much samples and starter projects.
+3. You don't need much of a customization and your content structure fits nicely to one of other static site generators that provides out of the box solutions.
