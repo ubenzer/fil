@@ -64,7 +64,6 @@ const clearBinaryItemsFromDisk = async ({id, type, json, cachePath, accountingKe
 }
 
 const binaryCacheTypes = {
-  childrenArgs: 'childrenArgs',
   content: 'content',
   handlesArgs: 'handlesArgs'
 }
