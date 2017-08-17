@@ -23,6 +23,7 @@
   },
 
   "rules": {
+    "array-element-newline": "off",
     "brace-style": [2, "1tbs", { "allowSingleLine": true }],
     "capitalized-comments": "off",
     "consistent-return": "off",
@@ -45,7 +46,7 @@
     "prefer-destructuring": "off",
     "require-await": "off",
     "semi": ["error", "never"],
-    "space-before-function-paren": [2, "never"],
+    "space-before-function-paren": [2, {"anonymous": "never", "named": "never", "asyncArrow": "always"}],
     "object-curly-newline": ["error", {"multiline": true}],
     "object-property-newline": "off",
     "one-var": ["error", "never"],

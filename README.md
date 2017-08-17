@@ -70,7 +70,7 @@ You can have unlimited amount of different content types, contents and routes. I
 ## API & Project Definition
 You can find required information and interfaces to create your own Fil project in [PROJECT.md](PROJECT.md).
 
-If you want to use Fil programatiaclly, you can find API definition in API.md in the future.
+If you want to use Fil programmatically, you can find API definition in API.md in the future.
 
 ## Roadmap 
 The following features are planned considered. Not in particular order. And no promises.

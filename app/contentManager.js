@@ -39,6 +39,18 @@ export class ContentManager {
   }
 
   async valueOf({id}) {
+    const handler = this._getHandlerFor({id})
+
+    const cacheEnabledCalculatorFn = handler.useCache || ContentManager.defaultCacheCalculator
+    const useCache = await cacheEnabledCalculatorFn({id})
+
+    if (!useCache) {
+      return handler.content({
+        id,
+        project: this._project
+      })
+    }
+
     await this._ensureCachedContentFor({id})
 
     const cachedContent = this._cache.contents[id].content
@@ -113,7 +125,6 @@ export class ContentManager {
         childrenSubscription: null,
 
         content: null,
-        contentArgs: null,
         contentSubscription: null,
 
         fn: null
@@ -122,14 +133,18 @@ export class ContentManager {
     const cachedContent = this._cache.contents[id]
 
     if (!cachedContent.fn) {
-      const handlers = this._project._project.contentTypes() // eslint-disable-line no-underscore-dangle
-      const handlerKey = id.split('@')[0]
-      const handler = handlers[handlerKey]
-      if (!handler) {
-        throw new Error(`Handler "${handlerKey}" can't be found for content "${id}"`)
-      }
-      cachedContent.fn = handler
+      cachedContent.fn = this._getHandlerFor({id})
     }
+  }
+
+  _getHandlerFor({id}) {
+    const handlers = this._project._project.contentTypes() // eslint-disable-line no-underscore-dangle
+    const handlerKey = id.split('@')[0]
+    const handler = handlers[handlerKey]
+    if (!handler) {
+      throw new Error(`Handler "${handlerKey}" can't be found for content "${id}"`)
+    }
+    return handler
   }
 
   async _ensureCachedContentFor({id}) {
@@ -137,59 +152,27 @@ export class ContentManager {
 
     const cachedContent = this._cache.contents[id]
 
-    // Check arguments first to see if we already have a calculated value
-    const contentArgumentsFn = cachedContent.fn.contentArguments || ContentManager.defaultContentArguments
-
-    const [oldArgs, newArgs] = await Promise.all([
-      binaryItemsFromDisk({
-        id,
-        json: cachedContent.contentArgs,
-        type: binaryCacheTypes.contentArgs,
-        ...this._baseBinaryConfig
-      }),
-      contentArgumentsFn({
-        id,
-        project: this._project
-      })
-    ])
-    const areArgsSame = Project.compareArgumentCache({newArgs, oldArgs})
-
-    if (cachedContent.content !== null && areArgsSame) { return }
+    if (cachedContent.content !== null) { return }
     debug(`Content Cache miss for: ${id}`)
 
-    const newContent = await cachedContent.fn.content(newArgs)
+    const newContent = await cachedContent.fn.content({
+      id,
+      project: this._project
+    })
 
-    await Promise.all([
-      clearBinaryItemsFromDisk({
-        id,
-        json: cachedContent.contentArgs,
-        type: binaryCacheTypes.contentArgs,
-        ...this._baseBinaryConfig
-      }),
-      clearBinaryItemsFromDisk({
-        id,
-        json: cachedContent.content,
-        type: binaryCacheTypes.content,
-        ...this._baseBinaryConfig
-      })
-    ])
+    await clearBinaryItemsFromDisk({
+      id,
+      json: cachedContent.content,
+      type: binaryCacheTypes.content,
+      ...this._baseBinaryConfig
+    })
 
-    const [contentArgs, content] = await Promise.all([
-      binaryItemsToDisk({
-        id,
-        json: newArgs,
-        type: binaryCacheTypes.contentArgs,
-        ...this._baseBinaryConfig
-      }),
-      binaryItemsToDisk({
-        id,
-        json: newContent,
-        type: binaryCacheTypes.content,
-        ...this._baseBinaryConfig
-      })
-    ])
-    cachedContent.contentArgs = contentArgs
-    cachedContent.content = content
+    cachedContent.content = await binaryItemsToDisk({
+      id,
+      json: newContent,
+      type: binaryCacheTypes.content,
+      ...this._baseBinaryConfig
+    })
 
     this._startWatchingContentChangesOf({id})
   }
@@ -202,24 +185,14 @@ export class ContentManager {
     const cachePath = this._project.cachePath()
     const accountingKey = ContentManager.binaryFieldDesriptorKey
 
-    await Promise.all([
-      clearBinaryItemsFromDisk({
-        accountingKey,
-        cachePath,
-        id,
-        json: cachedContent.content,
-        type: binaryCacheTypes.content
-      }),
-      clearBinaryItemsFromDisk({
-        accountingKey,
-        cachePath,
-        id,
-        json: cachedContent.contentArgs,
-        type: binaryCacheTypes.contentArgs
-      })
-    ])
+    await clearBinaryItemsFromDisk({
+      accountingKey,
+      cachePath,
+      id,
+      json: cachedContent.content,
+      type: binaryCacheTypes.content
+    })
 
-    cachedContent.contentArgs = null
     cachedContent.content = null
     if (cachedContent.contentSubscription) {
       cachedContent.contentSubscription.unsubscribe()
@@ -265,12 +238,6 @@ export class ContentManager {
         id,
         json: cachedContent.content,
         type: binaryCacheTypes.content,
-        ...this._baseBinaryConfig
-      }),
-      clearBinaryItemsFromDisk({
-        id,
-        json: cachedContent.contentArgs,
-        type: binaryCacheTypes.contentArgs,
         ...this._baseBinaryConfig
       }),
       clearBinaryItemsFromDisk({
@@ -358,7 +325,7 @@ export class ContentManager {
     }
   }
 }
+ContentManager.defaultCacheCalculator = async () => true
 ContentManager.defaultChildrenCalculator = async () => ({})
 ContentManager.defaultChildrenArguments = async ({id}) => ({id})
-ContentManager.defaultContentArguments = async ({id}) => ({id})
 ContentManager.binaryFieldDesriptorKey = '_binaryFields'

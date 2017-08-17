@@ -1,19 +1,10 @@
 language: node_js
 node_js:
-  - "7"
+  - "8"
 os:
   - linux
   - osx
 sudo: false
-addons:
-  apt:
-    sources:
-    - ubuntu-toolchain-r-test
-    packages:
-    - g++-4.8
-osx_image: xcode8
-before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export CXX=g++-4.8; fi
 after_success:
   - codecov -f coverage/coverage-final.json
 install:
