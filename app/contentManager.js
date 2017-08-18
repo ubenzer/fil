@@ -1,9 +1,6 @@
-import {binaryCacheTypes, binaryItemsFromDisk,
-  binaryItemsToDisk, clearBinaryItemsFromDisk} from './utils/binaryCacheHelpers'
-import {readSafeJSON, translateError, writeSafeJSON} from './utils/misc'
+import {readObject, writeObject} from './utils/cache'
 import Rx from 'rxjs/Rx'
 import debugc from 'debug'
-import path from 'path'
 
 const debug = debugc('fil:contentManager')
 
@@ -15,10 +12,6 @@ export class ContentManager {
     this._allContentsChangeObservable = Rx.Observable.create((subscriber) => {
       this._allContentsChangeSubscriber = subscriber
     })
-    this._baseBinaryConfig = {
-      accountingKey: ContentManager.binaryFieldDesriptorKey,
-      cachePath: this._project.cachePath()
-    }
   }
 
   contentTypes() {
@@ -26,6 +19,23 @@ export class ContentManager {
   }
 
   async metaOf({id}) {
+    const handler = this._getHandlerFor({id})
+    const cacheEnabledCalculatorFn = handler.useChildrenCache || ContentManager.defaultCacheCalculator
+    const useCache = await cacheEnabledCalculatorFn({id})
+
+    if (!useCache) {
+      const children = await handler.children({
+        id,
+        project: this._project
+      })
+
+      return {
+        children,
+        id,
+        type: id.split('@')[0]
+      }
+    }
+
     await this._ensureCachedChildrenFor({id})
 
     const cachedContent = this._cache.contents[id]
@@ -38,8 +48,7 @@ export class ContentManager {
 
   async valueOf({id}) {
     const handler = this._getHandlerFor({id})
-
-    const cacheEnabledCalculatorFn = handler.useCache || ContentManager.defaultCacheCalculator
+    const cacheEnabledCalculatorFn = handler.useContentCache || ContentManager.defaultCacheCalculator
     const useCache = await cacheEnabledCalculatorFn({id})
 
     if (!useCache) {
@@ -63,24 +72,18 @@ export class ContentManager {
       Object.keys(this._cache.contents)
         .map((id) => {
           const cacheItemCopy = {...this._cache.contents[id]}
-          cacheItemCopy.fn = null
-          cacheItemCopy.contentSubscription = null
-          cacheItemCopy.childrenSubscription = null
-          cacheItemCopy.areBinaryItemsLoaded = false
-          return binaryItemsToDisk({
-            id,
-            json: cacheItemCopy.content,
-            type: binaryCacheTypes.content,
-            ...this._baseBinaryConfig
-          }).then((content) => {
-            cacheItemCopy.content = content
-            return {cacheItemCopy, id}
-          })
+          delete cacheItemCopy.fn
+          delete cacheItemCopy.contentSubscription
+          delete cacheItemCopy.childrenSubscription
+          return {cacheItemCopy, id}
         })
         .reduce((acc, {id, cacheItemCopy}) => ({[id]: cacheItemCopy, ...acc}), {})
     const cache = {contents: cacheContentsWithoutFns}
-    const filePath = path.join(this._project.cachePath(), 'contents.json')
-    return writeSafeJSON({object: cache, path: filePath})
+    return writeObject({
+      cachePath: this._project.cachePath(),
+      key: 'contents',
+      object: cache
+    })
   }
 
   disposeChangeListeners() {
@@ -97,15 +100,17 @@ export class ContentManager {
   }
 
   async loadCache() {
-    const filePath = path.join(this._project.cachePath(), 'contents.json')
-    const json = await readSafeJSON({path: filePath}).catch(translateError)
+    const cache = await readObject({
+      cachePath: this._project.cachePath(),
+      key: 'contents'
+    })
 
-    if (json instanceof Error) {
+    if (cache === null) {
       // Means we have no cache at all.
       return
     }
 
-    this._cache = json
+    this._cache = cache
   }
 
   initChangeListeners() {
@@ -120,9 +125,7 @@ export class ContentManager {
   _ensureCacheEntryFor({id}) {
     if (!this._cache.contents[id]) {
       this._cache.contents[id] = {
-        areBinaryItemsLoaded: false,
         children: null,
-        childrenArgs: null,
         childrenSubscription: null,
 
         content: null,
@@ -153,16 +156,6 @@ export class ContentManager {
 
     const cachedContent = this._cache.contents[id]
 
-    if (!cachedContent.areBinaryItemsLoaded) {
-      cachedContent.content = await binaryItemsFromDisk({
-        id,
-        json: cachedContent.content,
-        type: binaryCacheTypes.content,
-        ...this._baseBinaryConfig
-      })
-      cachedContent.areBinaryItemsLoaded = true
-    }
-
     if (cachedContent.content !== null) { return }
     debug(`Content Cache miss for: ${id}`)
 
@@ -170,7 +163,6 @@ export class ContentManager {
       id,
       project: this._project
     })
-    cachedContent.areBinaryItemsLoaded = true
 
     this._startWatchingContentChangesOf({id})
   }
@@ -180,16 +172,6 @@ export class ContentManager {
     this._ensureCacheEntryFor({id})
 
     const cachedContent = this._cache.contents[id]
-    const cachePath = this._project.cachePath()
-    const accountingKey = ContentManager.binaryFieldDesriptorKey
-
-    await clearBinaryItemsFromDisk({
-      accountingKey,
-      cachePath,
-      id,
-      json: cachedContent.content,
-      type: binaryCacheTypes.content
-    })
 
     cachedContent.content = null
     if (cachedContent.contentSubscription) {
@@ -230,21 +212,6 @@ export class ContentManager {
     if (cachedContent.children) {
       await Promise.all(cachedContent.children.map((c) => this._deleteCacheEntryFor(c)))
     }
-
-    await Promise.all([
-      clearBinaryItemsFromDisk({
-        id,
-        json: cachedContent.content,
-        type: binaryCacheTypes.content,
-        ...this._baseBinaryConfig
-      }),
-      clearBinaryItemsFromDisk({
-        id,
-        json: cachedContent.childrenArgs,
-        type: binaryCacheTypes.childrenArgs,
-        ...this._baseBinaryConfig
-      })
-    ])
 
     delete this._cache.contents[id]
   }
@@ -293,4 +260,3 @@ export class ContentManager {
 }
 ContentManager.defaultCacheCalculator = async () => true
 ContentManager.defaultChildrenCalculator = async () => ({})
-ContentManager.binaryFieldDesriptorKey = '_binaryFields'

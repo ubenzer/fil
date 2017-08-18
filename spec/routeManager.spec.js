@@ -2,16 +2,7 @@ import {Project} from '../app/project'
 import {RouteManager} from '../app/routeManager'
 import {it} from 'jasmine-promise-wrapper'
 
-const mockProject = new Project({
-  project: {
-    routeHandlers: () => ({
-      testHandler1: {
-        handles: async () => ['a'],
-        handlesArguments: async () => ({})
-      }
-    })
-  }
-})
+const mockProject = new Project({project: {routeHandlers: () => ({testHandler1: {handles: async () => ['a']}})}})
 
 describe('RouteManager', () => {
   it('returns handled url list', async () => {

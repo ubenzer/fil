@@ -3,7 +3,6 @@ import {ContentManager} from './contentManager'
 import {RouteManager} from './routeManager'
 import Rx from 'rxjs/Rx'
 import debugc from 'debug'
-import deepEql from 'deep-eql'
 import os from 'os'
 import path from 'path'
 import uuidV1 from 'uuid/v1'
@@ -112,4 +111,3 @@ export class Project {
     return path.join(os.tmpdir(), uuidV1())
   }
 }
-Project.compareArgumentCache = ({newArgs, oldArgs}) => deepEql(newArgs, oldArgs)

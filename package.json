@@ -1,6 +1,6 @@
 {
   "name": "fil",
-  "version": "6.0.0",
+  "version": "7.0.0",
   "description": "A superfast static site generator",
   "scripts": {
     "compile": "shx rm -r compiled && babel app -d compiled",
@@ -16,9 +16,7 @@
   "dependencies": {
     "browser-sync": "^2.18.13",
     "debug": "^3.0.0",
-    "deep-eql": "^3.0.0",
-    "deep-iterator": "^1.1.0",
-    "dot-prop-immutable": "^1.3.1",
+    "deep-map": "^1.5.0",
     "fs-extra": "^4.0.1",
     "gauge": "^2.7.4",
     "minimist": "^1.2.0",

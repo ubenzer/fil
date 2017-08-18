@@ -1,10 +1,4 @@
-import {binaryCacheTypes, binaryItemsFromDisk, binaryItemsToDisk} from './utils/binaryCacheHelpers'
-import {readSafeJSON, translateError, writeSafeJSON} from './utils/misc'
-import {Project} from './project'
-import debugc from 'debug'
-import path from 'path'
-
-const debug = debugc('fil:routeManager')
+import {readObject, writeObject} from './utils/cache'
 
 export class RouteManager {
   constructor({project}) {
@@ -48,46 +42,17 @@ export class RouteManager {
   async _handledUrlListFor({handlerId}) {
     this._ensureHandler({handlerId})
 
-    const accountingKey = RouteManager.binaryFieldDesriptorKey
-    const cachePath = this._project.cachePath()
-
     const handler = this._cache.handlers[handlerId]
 
     if (!handler) {
       throw new Error(`Handler with id ${handlerId} not found!`)
     }
 
-    const handlesArgumentsFn = handler.instance.handlesArguments || RouteManager.defaultHandlesArguments
-
-    // Check arguments first to see if we already have a calculated value
-    const [oldArgs, newArgs] = await Promise.all([
-      binaryItemsFromDisk({
-        accountingKey,
-        cachePath,
-        id: handlerId,
-        json: handler.handlesArgs,
-        type: binaryCacheTypes.handlesArgs
-      }),
-      handlesArgumentsFn({project: this._project})
-    ])
-    const areArgsSame = Project.compareArgumentCache({newArgs, oldArgs})
-
-    if (!areArgsSame) { debug(`Route Cache miss for: ${handlerId}`) }
-
-    if (handler.handles !== null && areArgsSame) {
+    if (handler.handles !== null) {
       return handler.handles
     }
-    const newUrlList = await handler.instance.handles(newArgs)
-
-    handler.handlesArgs = await binaryItemsToDisk({
-      accountingKey,
-      cachePath,
-      id: handlerId,
-      json: newArgs,
-      type: binaryCacheTypes.handlesArgs
-    })
+    const newUrlList = await handler.instance.handles({project: this._project})
     handler.handles = newUrlList
-
     return newUrlList
   }
 
@@ -102,25 +67,30 @@ export class RouteManager {
       Object.keys(this._cache.handlers)
         .map((id) => {
           const cacheItemCopy = {...this._cache.handlers[id]}
-          cacheItemCopy.instance = null
+          delete cacheItemCopy.instance
           return {cacheItemCopy, id}
         })
         .reduce((acc, {id, cacheItemCopy}) => ({[id]: cacheItemCopy, ...acc}), {})
     const cache = {handlers: cacheHandlersWithoutFns}
-    const filePath = path.join(this._project.cachePath(), 'routes.json')
-    return writeSafeJSON({object: cache, path: filePath})
+    return writeObject({
+      cachePath: this._project.cachePath(),
+      key: 'routes',
+      object: cache
+    })
   }
 
   async loadCache() {
-    const filePath = path.join(this._project.cachePath(), 'routes.json')
-    const json = await readSafeJSON({path: filePath}).catch(translateError)
+    const cache = await readObject({
+      cachePath: this._project.cachePath(),
+      key: 'routes'
+    })
 
-    if (json instanceof Error) {
+    if (cache === null) {
       // Means we have no cache at all.
       return
     }
 
-    this._cache = json
+    this._cache = cache
   }
 
   /* Cache operations */
@@ -128,7 +98,6 @@ export class RouteManager {
     if (!this._cache.handlers[handlerId]) {
       this._cache.handlers[handlerId] = {
         handles: null,
-        handlesArgs: null,
         instance: null
       }
     }
@@ -148,5 +117,3 @@ export class RouteManager {
     })
   }
 }
-RouteManager.binaryFieldDesriptorKey = '_binaryFields'
-RouteManager.defaultHandlesArguments = async () => ({})
