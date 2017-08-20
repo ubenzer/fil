@@ -1,4 +1,4 @@
-import deepMap from 'deep-map'
+import {deepMap} from './misc'
 import fs from 'fs-extra'
 import path from 'path'
 import uuidV1 from 'uuid/v1'
@@ -10,7 +10,7 @@ const readHash = async ({cachePath}) => fs.readFile(path.join(cachePath, hashFil
 const writeHash = async ({cachePath, hash}) => fs.outputFile(path.join(cachePath, hashFileName), hash)
 const clearCache = async ({cachePath}) => fs.emptyDir(cachePath)
 
-const pathForCacheItem = ({uuid}) => path.join(uuid[0], uuid[1], uuid)
+const pathForCacheItem = ({uuid}) => path.join(uuid[0], uuid[1], uuid[2], uuid[3], uuid[4], uuid)
 
 const writeObject = async ({key, object, cachePath}) => {
   if (!object) { return }
