@@ -6,6 +6,7 @@ import debugc from 'debug'
 import os from 'os'
 import path from 'path'
 import uuidV1 from 'uuid/v1'
+import {toObservable} from './utils/misc'
 
 const debug = debugc('fil:project')
 
@@ -22,7 +23,7 @@ export class Project {
           throw new Error(`Duplicate key ${key}`)
         }
         return {[key]: content, ...acc}
-      }, project.contentTypes)
+      }, project.contentTypes || {})
 
     this._project = {...project, contentTypes}
 
@@ -105,8 +106,8 @@ export class Project {
   watcher$() {
     if (!this._listenToChanges) { return Rx.Observable.empty() }
     return Rx.Observable.merge(
-      this._contentManager.watcher$()
-      // this._project.watcher$()
+      this._contentManager.watcher$(),
+      toObservable({fn: this._project.watcher})
     )
   }
 
