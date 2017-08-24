@@ -5,8 +5,8 @@ import Rx from 'rxjs/Rx'
 import debugc from 'debug'
 import os from 'os'
 import path from 'path'
-import uuidV1 from 'uuid/v1'
 import {toObservable} from './utils/misc'
+import uuidV1 from 'uuid/v1'
 
 const debug = debugc('fil:project')
 
