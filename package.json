@@ -19,6 +19,7 @@
     "fs-extra": "^4.0.1",
     "gauge": "^2.7.4",
     "lodash.isplainobject": "^4.0.6",
+    "mime-types": "^2.1.16",
     "minimist": "^1.2.0",
     "npid": "^0.4.0",
     "rxjs": "^5.4.3",
@@ -35,8 +36,7 @@
     "jasmine": "^2.7.0",
     "jasmine-promise-wrapper": "0.0.3",
     "nyc": "^11.1.0",
-    "shx": "^0.2.2",
-    "source-map-support": "^0.4.16"
+    "shx": "^0.2.2"
   },
   "keywords": [
     "static-site",

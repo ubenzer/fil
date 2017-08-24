@@ -11,12 +11,10 @@ export class ProjectRunner {
 
   async init() {
     await this._project.initCache()
-    this._project.initChangeListeners()
   }
 
   async generateStatic() {
     await new StaticRenderer({outputHeaders: this._outputHeaders, project: this._project}).render()
-    this._project.disposeChangeListeners()
   }
 
   async generateDynamic() {

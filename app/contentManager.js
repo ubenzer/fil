@@ -1,13 +1,14 @@
-import {readObject, writeObject} from './utils/cache'
+import {ReactiveCache} from './reactiveCache'
 import Rx from 'rxjs/Rx'
 import debugc from 'debug'
 
 const debug = debugc('fil:contentManager')
 
 export class ContentManager {
-  constructor({project}) {
+  constructor({project, checkForChanges}) {
     this._project = project
-    this._cache = {contents: {}}
+    this._checkForChanges = checkForChanges
+    this._cache = new ReactiveCache()
     this._allContentsChangeSubscriber = null
     this._allContentsChangeObservable = Rx.Observable.create((subscriber) => {
       this._allContentsChangeSubscriber = subscriber
@@ -15,52 +16,64 @@ export class ContentManager {
   }
 
   contentTypes() {
-    return Object.keys(this._project._project.contentTypes()) // eslint-disable-line no-underscore-dangle
+    return Object.keys(this._project._project.contentTypes) // eslint-disable-line no-underscore-dangle
   }
 
-  async metaOf({id}) {
-    const handler = this._getHandlerFor({id})
+  async metaOf({id, type}) {
+    const handler = this._getHandlerFor({type})
     const cacheEnabledCalculatorFn = handler.useChildrenCache || ContentManager.defaultCacheCalculator
-    const useCache = await cacheEnabledCalculatorFn({id})
+    const useCache = cacheEnabledCalculatorFn({id, type})
 
-    if (!useCache) {
-      const children = await handler.children({
+    const valueFn = async () => {
+      const childrenCalculatorFn = handler.children || ContentManager.defaultChildrenCalculator
+
+      const children = await childrenCalculatorFn({
         id,
-        project: this._project
+        project: this._project,
+        type
       })
 
       return {
         children,
         id,
-        type: id.split('@')[0]
+        type
       }
     }
 
-    await this._ensureCachedChildrenFor({id})
+    if (!useCache) { return valueFn() }
 
-    const cachedContent = this._cache.contents[id]
-    return {
-      children: cachedContent.children,
-      id,
-      type: id.split('@')[0]
-    }
+    const cacheKey = `${type}/meta/${id}`
+
+    return this._cache.calculate({
+      id: cacheKey,
+      notifyFn: this._onChildrenChanged.bind(this, {id, type}),
+      valueFn,
+      watchFn: this._getWatcherFunction({candidateFn: handler.childrenWatcher}).bind(this, {id, type})
+    })
   }
 
-  async valueOf({id}) {
-    const handler = this._getHandlerFor({id})
+  async valueOf({id, type}) {
+    const handler = this._getHandlerFor({type})
     const cacheEnabledCalculatorFn = handler.useContentCache || ContentManager.defaultCacheCalculator
-    const useCache = await cacheEnabledCalculatorFn({id})
+    const useCache = cacheEnabledCalculatorFn({id, type})
 
-    if (!useCache) {
-      return handler.content({
+    const valueFn = async () =>
+      handler.content({
         id,
-        project: this._project
+        project: this._project,
+        type
       })
-    }
 
-    await this._ensureCachedContentFor({id})
+    if (!useCache) { return valueFn() }
 
-    return this._cache.contents[id].content
+    const cacheKey = `${type}/content/${id}`
+
+    return this._cache.calculate({
+      id: cacheKey,
+      notifyFn: this._onContentChanged.bind(this, {id, type}),
+      valueFn,
+      watchFn: this._getWatcherFunction({candidateFn: handler.contentWatcher}).bind(this, {id, type})
+    })
   }
 
   watcher$() {
@@ -68,195 +81,86 @@ export class ContentManager {
   }
 
   async persistCache() {
-    const cacheContentsWithoutFns =
-      Object.keys(this._cache.contents)
-        .map((id) => {
-          const cacheItemCopy = {...this._cache.contents[id]}
-          delete cacheItemCopy.fn
-          delete cacheItemCopy.contentSubscription
-          delete cacheItemCopy.childrenSubscription
-          return {cacheItemCopy, id}
-        })
-        .reduce((acc, {id, cacheItemCopy}) => ({[id]: cacheItemCopy, ...acc}), {})
-    const cache = {contents: cacheContentsWithoutFns}
-    return writeObject({
-      cachePath: this._project.cachePath(),
-      key: 'contents',
-      object: cache
+    return this._cache.persistCache({
+      cachePath: this._project.cachePath,
+      key: 'contents'
     })
-  }
-
-  disposeChangeListeners() {
-    Object.keys(this._cache.contents)
-      .forEach((id) => {
-        const cacheItem = this._cache.contents[id]
-        if (cacheItem.contentSubscription) {
-          cacheItem.contentSubscription.unsubscribe()
-        }
-        if (cacheItem.childrenSubscription) {
-          cacheItem.childrenSubscription.unsubscribe()
-        }
-      })
   }
 
   async loadCache() {
-    const cache = await readObject({
-      cachePath: this._project.cachePath(),
+    await this._cache.loadCache({
+      cachePath: this._project.cachePath,
+      functionLoaderFn: ({id: cacheKey}) => {
+        const [type, cacheType, id] = cacheKey.split('/', 3)
+        const handler = this._getHandlerFor({type})
+        if (cacheType === 'meta') {
+          return {
+            notifyFn: this._onChildrenChanged.bind(this, {id, type}),
+            watchFn: this._getWatcherFunction({candidateFn: handler.childrenWatcher}).bind(this, {id, type})
+          }
+        }
+
+        if (cacheType === 'content') {
+          return {
+            notifyFn: this._onContentChanged.bind(this, {id, type}),
+            watchFn: this._getWatcherFunction({candidateFn: handler.contentWatcher}).bind(this, {id, type})
+          }
+        }
+
+        throw new Error(`I have no idea about how to load "${id}" from cache.`)
+      },
       key: 'contents'
     })
-
-    if (cache === null) {
-      // Means we have no cache at all.
-      return
-    }
-
-    this._cache = cache
-  }
-
-  initChangeListeners() {
-    Object.keys(this._cache.contents)
-      .forEach((id) => {
-        this._startWatchingContentChangesOf({id})
-        this._startWatchingChildChangesOf({id})
-      })
   }
 
   /* Private operations */
-  _ensureCacheEntryFor({id}) {
-    if (!this._cache.contents[id]) {
-      this._cache.contents[id] = {
-        children: null,
-        childrenSubscription: null,
-
-        content: null,
-        contentSubscription: null,
-
-        fn: null
-      }
-    }
-    const cachedContent = this._cache.contents[id]
-
-    if (!cachedContent.fn) {
-      cachedContent.fn = this._getHandlerFor({id})
-    }
-  }
-
-  _getHandlerFor({id}) {
-    const handlers = this._project._project.contentTypes() // eslint-disable-line no-underscore-dangle
-    const handlerKey = id.split('@')[0]
-    const handler = handlers[handlerKey]
+  _getHandlerFor({type}) {
+    const handlers = this._project._project.contentTypes // eslint-disable-line no-underscore-dangle
+    const handler = handlers[type]
     if (!handler) {
-      throw new Error(`Handler "${handlerKey}" can't be found for content "${id}"`)
+      throw new Error(`Handler "${type}" can't be found.`)
     }
     return handler
   }
 
-  async _ensureCachedContentFor({id}) {
-    this._ensureCacheEntryFor({id})
-
-    const cachedContent = this._cache.contents[id]
-
-    if (cachedContent.content !== null) { return }
-    debug(`Content Cache miss for: ${id}`)
-
-    cachedContent.content = await cachedContent.fn.content({
-      id,
-      project: this._project
-    })
-
-    this._startWatchingContentChangesOf({id})
+  _onContentChanged({id, type}) {
+    debug(`Content changed for: ${type}/${id}`)
+    // Notify global subscriber that something changed recently
+    this._allContentsChangeSubscriber.next()
   }
 
-  async _onContentChangeFnFor({id}) {
-    debug(`Content changed for: ${id}`)
-    this._ensureCacheEntryFor({id})
+  async _onChildrenChanged({id, type}, {oldValue}) {
+    debug(`Children changed for: ${type}/${id}`)
 
-    const cachedContent = this._cache.contents[id]
+    const oldChildren = oldValue.children
+    const newChildren = (await this.metaOf({id, type})).children
+    const removedChildren = oldChildren.filter(
+      ({id: ocId, type: ocType}) =>
+        newChildren.filter(({id: ncId, type: ncType}) => ocId === ncId && ocType === ncType).length === 0
+    )
 
-    cachedContent.content = null
-    if (cachedContent.contentSubscription) {
-      cachedContent.contentSubscription.unsubscribe()
-      cachedContent.contentSubscription = null
-    }
+    removedChildren.map(({id: rId, type: rType}) => this._deleteContent({id: rId, type: rType}))
 
     // Notify global subscriber that something changed recently
     this._allContentsChangeSubscriber.next()
   }
 
-  async _onChildrenChangeFnFor({id}) {
-    debug(`Children changed for: ${id}`)
-    this._ensureCacheEntryFor({id})
+  _deleteContent({id, type}) {
+    this._cache.remove({id: `${type}/content/${id}`})
+    const meta = this._cache.remove({id: `${type}/meta/${id}`})
 
-    const oldChildren = this._cache.contents[id].children
-    this._cache.contents[id].children = null
-    await this._ensureCachedChildrenFor({id})
-    const newChildren = this._cache.contents[id].children
-    const removedChildren = oldChildren.filter((oc) => newChildren.indexOf(oc) === -1)
-
-    await Promise.all(removedChildren.map((c) => this._deleteCacheEntryFor({id: c})))
-
-    // Notify global subscriber that something changed recently
-    this._allContentsChangeSubscriber.next()
-  }
-
-  async _deleteCacheEntryFor({id}) {
-    const cachedContent = this._cache.contents[id]
-
-    if (!cachedContent) { return }
-    if (cachedContent.childrenSubscription) {
-      cachedContent.childrenSubscription.unsubscribe()
-    }
-    if (cachedContent.contentSubscription) {
-      cachedContent.contentSubscription.unsubscribe()
-    }
-    if (cachedContent.children) {
-      await Promise.all(cachedContent.children.map((c) => this._deleteCacheEntryFor(c)))
-    }
-
-    delete this._cache.contents[id]
-  }
-
-  async _ensureCachedChildrenFor({id}) {
-    this._ensureCacheEntryFor({id})
-
-    const cachedContent = this._cache.contents[id]
-
-    if (cachedContent.children !== null) { return }
-    debug(`Child Cache miss for: ${id}`)
-
-    const childrenCalculatorFn = cachedContent.fn.children || ContentManager.defaultChildrenCalculator
-    cachedContent.children = await childrenCalculatorFn({
-      id,
-      project: this._project
-    })
-
-    this._startWatchingChildChangesOf({id})
-  }
-
-  _startWatchingContentChangesOf({id}) {
-    this._ensureCacheEntryFor({id})
-    const content = this._cache.contents[id]
-
-    if (this._project._listenToChanges && // eslint-disable-line no-underscore-dangle
-        !content.contentSubscription && content.fn.contentWatcher$ &&
-        content.content !== null) {
-      content.contentSubscription = content.fn.contentWatcher$({id})
-        .subscribe(this._onContentChangeFnFor.bind(this, {id}))
+    if (meta && meta.children) {
+      meta.children.map(({id: rId, type: rType}) => this._deleteContent({id: rId, type: rType}))
     }
   }
 
-  _startWatchingChildChangesOf({id}) {
-    this._ensureCacheEntryFor({id})
-    const content = this._cache.contents[id]
-
-    if (this._project._listenToChanges && // eslint-disable-line no-underscore-dangle
-        !content.childrenSubscription && content.fn.childrenWatcher$ &&
-        content.children !== null) {
-      debug(`Listening for child changes of ${id}`)
-      content.childrenSubscription = content.fn.childrenWatcher$({id})
-        .subscribe(this._onChildrenChangeFnFor.bind(this, {id}))
+  _getWatcherFunction({candidateFn}) {
+    if (!this._checkForChanges) {
+      return ContentManager.defaultWatcher
     }
+    return candidateFn || ContentManager.defaultWatcher
   }
 }
-ContentManager.defaultCacheCalculator = async () => true
-ContentManager.defaultChildrenCalculator = async () => ({})
+ContentManager.defaultWatcher = () => null
+ContentManager.defaultCacheCalculator = () => true
+ContentManager.defaultChildrenCalculator = () => []

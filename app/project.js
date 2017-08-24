@@ -11,11 +11,31 @@ const debug = debugc('fil:project')
 
 export class Project {
   constructor({listenToChanges, project, useCache}) {
-    this._project = project
+    const contentTypes = Object.keys(project.routeHandlers)
+      .map((key) => {
+        const handler = project.routeHandlers[key]
+        const content = Project.routeHandler2RegularContent({routeHandler: handler, type: key})
+        return {content, key}
+      })
+      .reduce((acc, {content, key}) => {
+        if (acc[key]) {
+          throw new Error(`Duplicate key ${key}`)
+        }
+        return {[key]: content, ...acc}
+      }, project.contentTypes)
+
+    this._project = {...project, contentTypes}
+
     this._listenToChanges = listenToChanges
     this._useCache = useCache
     this._routeManager = new RouteManager({project: this})
-    this._contentManager = new ContentManager({project: this})
+    this._contentManager = new ContentManager({checkForChanges: listenToChanges, project: this})
+
+    if (this._useCache) {
+      this.cachePath = this._project.cachePath
+    } else {
+      this.cachePath = path.join(os.tmpdir(), uuidV1())
+    }
   }
 
   /* init & dispose logic */
@@ -25,7 +45,7 @@ export class Project {
       return
     }
     debug('Checking if project is changed while fil is not running')
-    const cachePath = this._project.cachePath()
+    const cachePath = this._project.cachePath
     const [currentHash, cachedHash] = await Promise.all([
       this._project.contentVersion(),
       readHash({cachePath}).catch(() => null)
@@ -39,18 +59,7 @@ export class Project {
       return
     }
 
-    return Promise.all([
-      this._contentManager.loadCache(),
-      this._routeManager.loadCache()
-    ])
-  }
-  initChangeListeners() {
-    if (!this._listenToChanges) { return }
-    this._contentManager.initChangeListeners()
-  }
-  disposeChangeListeners() {
-    if (!this._listenToChanges) { return }
-    this._contentManager.disposeChangeListeners()
+    return this._contentManager.loadCache()
   }
 
   /* Route related stuff */
@@ -65,16 +74,16 @@ export class Project {
   }
 
   /* Content related stuff */
-  async contentTypes() {
+  contentTypes() {
     // Returns an array of registered types
     return this._contentManager.contentTypes()
   }
-  async metaOf({id}) {
+  async metaOf({id, type}) {
     // / Returns all contents registered to a type
-    return this._contentManager.metaOf({id})
+    return this._contentManager.metaOf({id, type})
   }
-  async valueOf({id}) {
-    return this._contentManager.valueOf({id})
+  async valueOf({id, type}) {
+    return this._contentManager.valueOf({id, type})
   }
 
   /* Cache persistence */
@@ -82,14 +91,13 @@ export class Project {
     if (!this._useCache) { return }
     debug('Persisting cache')
 
-    const cachePath = this._project.cachePath()
+    const cachePath = this._project.cachePath
     const hash = await this._project.contentVersion()
     debug(`Content hash: ${hash}`)
 
     return Promise.all([
       writeHash({cachePath, hash}),
-      this._contentManager.persistCache(),
-      this._routeManager.persistCache()
+      this._contentManager.persistCache()
     ])
   }
 
@@ -97,17 +105,36 @@ export class Project {
   watcher$() {
     if (!this._listenToChanges) { return Rx.Observable.empty() }
     return Rx.Observable.merge(
-      this._contentManager.watcher$(),
-      this._project.watcher$()
+      this._contentManager.watcher$()
+      // this._project.watcher$()
     )
   }
 
   /* Path resolving */
   outPath() {
-    return this._project.outPath()
+    return this._project.outPath
   }
-  cachePath() {
-    if (this._useCache) { return this._project.cachePath() }
-    return path.join(os.tmpdir(), uuidV1())
+}
+Project.routeHandler2RegularContent = ({type, routeHandler}) => {
+  const handleFn = routeHandler.handle
+  const handlesFn = routeHandler.handles
+  const useHandleCache = routeHandler.useHandleCache
+  const useHandlesCache = routeHandler.useHandlesCache
+  const handleWatcherFn = routeHandler.handleWatcher
+  const handlesWatcherFn = routeHandler.handlesWatcher
+
+  return {
+    children: async ({project}) => {
+      const urls = await handlesFn({project})
+      return urls.map((url) => ({
+        id: url,
+        type
+      }))
+    },
+    childrenWatcher: handlesWatcherFn,
+    content: ({id, project}) => handleFn({project, url: id}),
+    contentWatcher: handleWatcherFn ? ({id}) => handleWatcherFn({url: id}) : null,
+    useChildrenCache: useHandlesCache,
+    useContentCache: useHandleCache
   }
 }
