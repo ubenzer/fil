@@ -48,7 +48,7 @@ export class ContentManager {
       id: cacheKey,
       notifyFn: this._onChildrenChanged.bind(this, {id, type}),
       valueFn,
-      watchFn: this._getWatcherFunction({candidateFn: handler.childrenWatcher}).bind(this, {id, type})
+      watchFn: this._getWatcherFunction({candidateFn: handler.childrenWatcher, id, type})
     })
   }
 
@@ -72,7 +72,7 @@ export class ContentManager {
       id: cacheKey,
       notifyFn: this._onContentChanged.bind(this, {id, type}),
       valueFn,
-      watchFn: this._getWatcherFunction({candidateFn: handler.contentWatcher}).bind(this, {id, type})
+      watchFn: this._getWatcherFunction({candidateFn: handler.contentWatcher, id, type})
     })
   }
 
@@ -96,14 +96,14 @@ export class ContentManager {
         if (cacheType === 'meta') {
           return {
             notifyFn: this._onChildrenChanged.bind(this, {id, type}),
-            watchFn: this._getWatcherFunction({candidateFn: handler.childrenWatcher}).bind(this, {id, type})
+            watchFn: this._getWatcherFunction({candidateFn: handler.childrenWatcher, id, type})
           }
         }
 
         if (cacheType === 'content') {
           return {
             notifyFn: this._onContentChanged.bind(this, {id, type}),
-            watchFn: this._getWatcherFunction({candidateFn: handler.contentWatcher}).bind(this, {id, type})
+            watchFn: this._getWatcherFunction({candidateFn: handler.contentWatcher, id, type})
           }
         }
 
@@ -154,11 +154,14 @@ export class ContentManager {
     }
   }
 
-  _getWatcherFunction({candidateFn}) {
-    if (!this._checkForChanges) {
-      return ContentManager.defaultWatcher
+  _getWatcherFunction({candidateFn, id, type}) {
+    return ({notifyFn}) => {
+      let fn = candidateFn || ContentManager.defaultWatcher
+      if (!this._checkForChanges) {
+        fn = ContentManager.defaultWatcher
+      }
+      return fn({id, notifyFn, type})
     }
-    return candidateFn || ContentManager.defaultWatcher
   }
 }
 ContentManager.defaultWatcher = () => null

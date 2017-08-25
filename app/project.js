@@ -134,7 +134,7 @@ Project.routeHandler2RegularContent = ({type, routeHandler}) => {
     },
     childrenWatcher: handlesWatcherFn,
     content: ({id, project}) => handleFn({project, url: id}),
-    contentWatcher: handleWatcherFn ? ({id}) => handleWatcherFn({url: id}) : null,
+    contentWatcher: handleWatcherFn ? ({id, notifyFn}) => handleWatcherFn({notifyFn, url: id}) : null,
     useChildrenCache: useHandlesCache,
     useContentCache: useHandleCache
   }
