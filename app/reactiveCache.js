@@ -2,6 +2,7 @@ import {readObject, writeObject} from './utils/cache'
 import debugc from 'debug'
 const debugCacheMiss = debugc('fil:cache:miss')
 const debugChangeDetected = debugc('fil:cache:change')
+const debugWatchForChanges = debugc('fil:cache:watchForChanges')
 
 export class ReactiveCache {
   constructor() {
@@ -61,6 +62,7 @@ export class ReactiveCache {
   }
 
   _setAndWatchCache({id, value, watchFn, notifyFn}) {
+    debugWatchForChanges(id)
     const externalNotifyFn = this._onValueChanged.bind(this, {id})
     const retVal = watchFn({notifyFn: externalNotifyFn})
     const unsubscribeFn = retVal && retVal.unsubscribe ? retVal.unsubscribe : () => ({})
@@ -74,10 +76,7 @@ export class ReactiveCache {
 
   _onValueChanged({id}) {
     const cachedItem = this._cache[id]
-    if (!cachedItem) {
-      debugChangeDetected(`Watcher for ${id} is already unsubscribed. You shouldn't sent extra notifications!`)
-      return
-    }
+    if (!cachedItem) { return }
 
     debugChangeDetected(id)
     const {unsubscribeFn, notifyFn, value} = cachedItem

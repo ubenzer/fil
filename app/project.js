@@ -60,7 +60,9 @@ export class Project {
       return
     }
 
-    return this._contentManager.loadCache()
+    debug('Loading cache...')
+    await this._contentManager.loadCache()
+    debug('Cache ready!')
   }
 
   /* Route related stuff */

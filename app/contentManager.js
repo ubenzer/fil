@@ -91,7 +91,9 @@ export class ContentManager {
     await this._cache.loadCache({
       cachePath: this._project.cachePath,
       functionLoaderFn: ({id: cacheKey}) => {
-        const [type, cacheType, id] = cacheKey.split('/', 3)
+        const [type, cacheType, ...idPieces] = cacheKey.split('/')
+        const id = idPieces.join('/')
+        debug(`functionLoaderFn invoked for ${cacheKey}`)
         const handler = this._getHandlerFor({type})
         if (cacheType === 'meta') {
           return {
