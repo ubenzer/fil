@@ -82,7 +82,7 @@ export class ReactiveCache {
     debugChangeDetected(id)
     const {unsubscribeFn, notifyFn, value} = cachedItem
     delete this._cache[id]
-    unsubscribeFn({oldValue: value})
-    notifyFn()
+    unsubscribeFn()
+    notifyFn({oldValue: value})
   }
 }
