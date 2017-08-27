@@ -32,10 +32,9 @@ export class StaticRenderer {
   }
 
   async _renderSingle({url, headers, body}) {
-    const ext = path.extname(url)
     let pathToWrite = path.join(this._project.outPath(), url)
 
-    if (ext.length === 0 && headers['Content-Type'].indexOf('text/html') > -1) {
+    if (url.endsWith('/')) {
       pathToWrite = path.join(pathToWrite, 'index.html')
     }
 
