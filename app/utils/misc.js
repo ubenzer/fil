@@ -1,3 +1,4 @@
+import Rx from 'rxjs/Rx'
 import isPlainObject from 'lodash.isplainobject'
 
 // https://gist.github.com/spion/8c9d8556697ed61108177164e90fb50d
@@ -24,4 +25,20 @@ const deepMap = (obj, fn) => {
   return fn(obj)
 }
 
-export {deepMap, translateError}
+const toObservable = ({fn}) => {
+  if (!fn) {
+    return Rx.Observable.empty()
+  }
+
+  return Rx.Observable.create((subscriber) => {
+    const notifyFn = () => {
+      subscriber.next()
+    }
+    const retVal = fn({notifyFn})
+    const unsubscribeFn = retVal && retVal.unsubscribe ? retVal.unsubscribe : () => ({})
+
+    return () => unsubscribeFn()
+  })
+}
+
+export {deepMap, translateError, toObservable}

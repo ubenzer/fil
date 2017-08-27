@@ -1,4 +1,5 @@
 import browserSync from 'browser-sync'
+import {headersFor} from '../utils/http'
 import http from 'http'
 import {translateError} from '../utils/misc'
 
@@ -34,7 +35,9 @@ export class DynamicRenderer {
       DynamicRenderer.render500({error: generatedPage, response})
       return
     }
-    const {headers, body} = generatedPage
+    const {body} = generatedPage
+
+    const headers = headersFor({url})
 
     response.writeHead(200, headers)
     response.end(body)

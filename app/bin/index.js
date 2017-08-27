@@ -22,7 +22,7 @@ const projectRunner = new ProjectRunner({
   useCache: !argv.nocache
 })
 
-const pidFolder = path.join(process.cwd(), projectRootFile.cachePath())
+const pidFolder = path.join(process.cwd(), projectRootFile.cachePath)
 
 fs.ensureDirSync(pidFolder) // eslint-disable-line no-sync
 
