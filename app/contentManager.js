@@ -21,7 +21,7 @@ export class ContentManager {
 
   async metaOf({id, type}) {
     const handler = this._getHandlerFor({type})
-    const cacheEnabledCalculatorFn = handler.useChildrenCache || handler.childrenWatcher
+    const cacheEnabledCalculatorFn = handler.useChildrenCache || (() => Boolean(handler.childrenWatcher))
     const useCache = cacheEnabledCalculatorFn({id, type})
 
     const valueFn = async () => {
@@ -54,7 +54,7 @@ export class ContentManager {
 
   async valueOf({id, type}) {
     const handler = this._getHandlerFor({type})
-    const cacheEnabledCalculatorFn = handler.useContentCache || handler.contentWatcher
+    const cacheEnabledCalculatorFn = handler.useContentCache || (() => Boolean(handler.contentWatcher))
     const useCache = cacheEnabledCalculatorFn({id, type})
 
     const valueFn = async () =>
