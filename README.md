@@ -37,8 +37,8 @@ If you want to start over, read [API](#api) docs and use it as you wish. :-)
 You can also install `fil` is a global package via `npm i -g fil` and use it that way. See all parameters [here](#fil-executable).
 
 ## Requirements
-1. Node.js 7.8.0+
-2. npm 3.x
+1. Node.js 8.2.x+
+2. npm 5.x
 
 ## Architecture & Overview
 A `fil` website has two parts:
@@ -89,7 +89,7 @@ Clone latest master to your local box:
 
 Run `npm i` to install dependencies.
 
-Run it using `babel-node` instead of `node` so it'll transpile everything into regular ES5.
+Use  `index-babel.js` as entry point, which transpiles ES6 tp ES5, so you don't suffer while developing.
 
 e.g.
 
@@ -99,7 +99,7 @@ e.g.
 # Your sample website that you test your changes is in my-fil-website folder
 
 cd my-fil-website
-../fil/node_modules/.bin/babel-node ../fil/app/bin/index.js --dynamic --nocache --force
+../fil/app/bin/index-babel.js --dynamic --nocache --force
 ```
 
 ## Fil Executable
