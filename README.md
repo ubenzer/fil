@@ -112,8 +112,6 @@ Static and dynamic rendering generates the same output. Static rendering is opti
 
 `fil --force` Normally you can't start more than one `fil` instances for the same fil project. You can use the force to skip this limitation. Be warned though, cache might go crazy!
 
-`fil --headers` Normally on static mode HTTP headers are not generated. If you pass this parameter, fil will generate a `.headers` file for each generated file which contains HTTP headers generated for that page. You can configure your production server to use header information in this files. This has no effect on `—dynamic` mode.
-
 `fil --nocache` Normally fil projects are cached for speedy incremental builds. By using this option you can skip cache for one time.
 
 ## Alternatives

@@ -3,9 +3,8 @@ import {Project} from './project'
 import {StaticRenderer} from './renderer/static'
 
 export class ProjectRunner {
-  constructor({project, listenToChanges, outputHeaders, useCache}) {
+  constructor({project, listenToChanges, useCache}) {
     this._project = new Project({listenToChanges, project, useCache})
-    this._outputHeaders = outputHeaders
     this._useCache = useCache
   }
 
@@ -14,7 +13,7 @@ export class ProjectRunner {
   }
 
   async generateStatic() {
-    await new StaticRenderer({outputHeaders: this._outputHeaders, project: this._project}).render()
+    await new StaticRenderer({project: this._project}).render()
   }
 
   async generateDynamic() {

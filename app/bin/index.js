@@ -11,13 +11,12 @@ import readline from 'readline'
 console.info('=== Fil ===')
 console.info(`Running using node ${process.version}`)
 
-const argv = parseArgs(process.argv, {boolean: ['dynamic', 'force', 'nocache', 'headers']})
+const argv = parseArgs(process.argv, {boolean: ['dynamic', 'force', 'nocache']})
 
 const projectRootFile = require(path.join(process.cwd(), 'index.js'))
 // noinspection JSUnresolvedVariable
 const projectRunner = new ProjectRunner({
   listenToChanges: argv.dynamic,
-  outputHeaders: argv.headers,
   project: projectRootFile,
   useCache: !argv.nocache
 })
