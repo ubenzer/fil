@@ -1,12 +1,13 @@
 {
   "name": "fil",
-  "version": "8.0.1",
+  "version": "8.0.2",
   "description": "A superfast static site generator",
   "scripts": {
     "compile": "shx rm -r compiled && babel app -d compiled",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "test": "nyc --all spec/run.js"
+    "test": "cross-env NODE_ENV=test nyc --all spec/run.js",
+    "test:debug": "cross-env NODE_ENV=test node $NODE_DEBUG_OPTION spec/run.js"
   },
   "bin": {
     "fil": "./compiled/bin/index.js"
@@ -30,9 +31,11 @@
   "devDependencies": {
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.0",
+    "babel-plugin-istanbul": "^4.1.4",
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
     "babel-preset-es2015": "^6.24.1",
     "codecov": "^2.3.0",
+    "cross-env": "^5.0.5",
     "eslint": "^4.5.0",
     "jasmine": "^2.8.0",
     "jasmine-promise-wrapper": "0.0.3",
@@ -56,6 +59,11 @@
     "url": "https://github.com/ubenzer/fil/issues"
   },
   "nyc": {
+    "require": [
+      "babel-register"
+    ],
+    "sourceMap": false,
+    "instrument": false,
     "include": [
       "app/**"
     ],
