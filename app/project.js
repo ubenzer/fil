@@ -75,6 +75,12 @@ export class Project {
   async handle({url}) {
     return this._routeManager.handle({url})
   }
+  async handleAll({urlProcessFn}) {
+    return this._routeManager.handleAll({urlProcessFn})
+  }
+  async checkForDuplicateUrls() {
+    return this._routeManager.checkForDuplicates()
+  }
 
   /* Content related stuff */
   contentTypes() {
@@ -121,8 +127,6 @@ export class Project {
 Project.routeHandler2RegularContent = ({type, routeHandler}) => {
   const handleFn = routeHandler.handle
   const handlesFn = routeHandler.handles
-  const useHandleCache = routeHandler.useHandleCache
-  const useHandlesCache = routeHandler.useHandlesCache
   const handleWatcherFn = routeHandler.handleWatcher
   const handlesWatcherFn = routeHandler.handlesWatcher
 
@@ -136,8 +140,6 @@ Project.routeHandler2RegularContent = ({type, routeHandler}) => {
     },
     childrenWatcher: handlesWatcherFn,
     content: ({id, project}) => handleFn({project, url: id}),
-    contentWatcher: handleWatcherFn ? ({id, notifyFn}) => handleWatcherFn({notifyFn, url: id}) : null,
-    useChildrenCache: useHandlesCache,
-    useContentCache: useHandleCache
+    contentWatcher: handleWatcherFn ? ({id, notifyFn}) => handleWatcherFn({notifyFn, url: id}) : null
   }
 }

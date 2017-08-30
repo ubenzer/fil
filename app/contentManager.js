@@ -32,7 +32,6 @@ export class ContentManager {
         project: this._project,
         type
       })
-
       return {
         children,
         id,
@@ -93,7 +92,6 @@ export class ContentManager {
       functionLoaderFn: ({id: cacheKey}) => {
         const [type, cacheType, ...idPieces] = cacheKey.split('/')
         const id = idPieces.join('/')
-        debug(`functionLoaderFn invoked for ${cacheKey}`)
         const handler = this._getHandlerFor({type})
         if (cacheType === 'meta') {
           return {

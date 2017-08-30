@@ -12,27 +12,20 @@ export class DynamicRenderer {
   async handleRequest(request, response) {
     const url = request.url
 
-    const handledUrlList = await this._project.handledUrls().catch(translateError)
-
-    if (handledUrlList instanceof Error) {
-      DynamicRenderer.render500({error: handledUrlList, response})
-      return
-    }
-
     if (url === '/?urlList') {
+      const handledUrlList = await this._project.handledUrls().catch(translateError)
       DynamicRenderer.renderUrlList({handledUrlList, response})
-      return
-    }
-
-    if (handledUrlList.indexOf(url) === -1) {
-      DynamicRenderer.render404({response})
       return
     }
 
     const generatedPage = await this._project.handle({url}).catch(translateError)
 
     if (generatedPage instanceof Error) {
-      DynamicRenderer.render500({error: generatedPage, response})
+      if (generatedPage.message === '404') {
+        DynamicRenderer.render404({response})
+      } else {
+        DynamicRenderer.render500({error: generatedPage, response})
+      }
       return
     }
     const {body} = generatedPage
