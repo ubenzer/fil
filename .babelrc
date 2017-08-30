@@ -1,7 +1,9 @@
 {
   "presets": ["es2015"],
   "plugins": [
-    ["transform-object-rest-spread", { "useBuiltIns": true }]
+    ["transform-object-rest-spread", { "useBuiltIns": true }],
+    "transform-async-to-generator",
+    "transform-runtime"
   ],
   "env": {
     "test": {
