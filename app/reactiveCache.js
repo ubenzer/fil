@@ -25,7 +25,7 @@ export class ReactiveCache {
     if (!cachedItem) { return null }
 
     const {unsubscribeFn, value} = cachedItem
-    unsubscribeFn({oldValue: value})
+    unsubscribeFn()
     delete this._cache[id]
     return value
   }

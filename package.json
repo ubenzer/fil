@@ -1,6 +1,6 @@
 {
   "name": "fil",
-  "version": "8.0.3",
+  "version": "8.0.4",
   "description": "A superfast static site generator",
   "scripts": {
     "compile": "shx rm -r compiled && babel app -d compiled",
@@ -26,13 +26,14 @@
     "npid": "^0.4.0",
     "rxjs": "^5.4.3",
     "sanitize-filename": "^1.6.1",
-    "supports-color": "^4.2.1",
+    "supports-color": "^4.4.0",
     "uuid": "^3.1.0"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.0",
     "babel-plugin-istanbul": "^4.1.4",
+    "babel-plugin-rewire": "^1.1.0",
     "babel-plugin-transform-async-to-generator": "^6.24.1",
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
     "babel-plugin-transform-runtime": "^6.23.0",
