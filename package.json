@@ -1,6 +1,6 @@
 {
   "name": "fil",
-  "version": "8.1.1",
+  "version": "8.1.2",
   "description": "A superfast static site generator",
   "scripts": {
     "compile": "shx rm -r compiled && cross-env NODE_ENV=compile babel app -d compiled",

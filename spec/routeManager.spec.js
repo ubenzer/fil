@@ -151,20 +151,20 @@ describe('RouteManager', () => {
           }
         ]
       })
-      mockProject.valueOf = jasmine.createSpy('valueOf', async ({data, id, type}) =>
-        ({body: `${data}-${id}-${type}`})).and.callThrough()
+      mockProject.valueOf = jasmine.createSpy('valueOf', async ({_data, id, type}) =>
+        ({body: `${_data}-${id}-${type}`})).and.callThrough()
 
       const urlProcessFn = jasmine.createSpy('urlProcessFn', async () => '').and.callThrough()
       await routeManager.handleAll({urlProcessFn})
 
       expect(mockProject.valueOf).toHaveBeenCalledTimes(4)
       expect(mockProject.valueOf).toHaveBeenCalledWith({
-        data: 'data@h1u2',
+        _data: 'data@h1u2',
         id: '/h1u2',
         type: 'handler1'
       })
       expect(mockProject.valueOf).toHaveBeenCalledWith({
-        data: 'data@h2u2',
+        _data: 'data@h2u2',
         id: '/h2u2',
         type: 'handler2'
       })

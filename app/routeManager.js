@@ -59,7 +59,7 @@ export class RouteManager {
     for (const handlerId of Object.keys(urlListPerHandler)) {
       for (const {url, data} of urlListPerHandler[handlerId]) {
         const {body} = await this._project.valueOf({ // eslint-disable-line no-await-in-loop
-          data,
+          _data: data,
           id: url,
           type: handlerId
         })
