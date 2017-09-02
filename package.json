@@ -1,6 +1,6 @@
 {
   "name": "fil",
-  "version": "8.1.0",
+  "version": "8.1.1",
   "description": "A superfast static site generator",
   "scripts": {
     "compile": "shx rm -r compiled && cross-env NODE_ENV=compile babel app -d compiled",
@@ -25,7 +25,6 @@
     "minimist": "^1.2.0",
     "npid": "^0.4.0",
     "rxjs": "^5.4.3",
-    "sanitize-filename": "^1.6.1",
     "supports-color": "^4.4.0",
     "uuid": "^3.1.0"
   },
