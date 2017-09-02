@@ -51,13 +51,14 @@ export class ContentManager {
     })
   }
 
-  async valueOf({id, type}) {
+  async valueOf({_data, id, type}) {
     const handler = this._getHandlerFor({type})
     const cacheEnabledCalculatorFn = handler.useContentCache || (() => Boolean(handler.contentWatcher))
     const useCache = cacheEnabledCalculatorFn({id, type})
 
     const valueFn = async () =>
       handler.content({
+        _data,
         id,
         project: this._project,
         type

@@ -66,9 +66,6 @@ export class Project {
   }
 
   /* Route related stuff */
-  async handledUrlsPerHandler() {
-    return this._routeManager.handledUrlsPerHandler()
-  }
   async handledUrls() {
     return this._routeManager.handledUrls()
   }
@@ -77,9 +74,6 @@ export class Project {
   }
   async handleAll({urlProcessFn}) {
     return this._routeManager.handleAll({urlProcessFn})
-  }
-  async checkForDuplicateUrls() {
-    return this._routeManager.checkForDuplicates()
   }
 
   /* Content related stuff */
@@ -91,8 +85,8 @@ export class Project {
     // / Returns all contents registered to a type
     return this._contentManager.metaOf({id, type})
   }
-  async valueOf({id, type}) {
-    return this._contentManager.valueOf({id, type})
+  async valueOf({_data, id, type}) {
+    return this._contentManager.valueOf({_data, id, type})
   }
 
   /* Cache persistence */
@@ -133,13 +127,19 @@ Project.routeHandler2RegularContent = ({type, routeHandler}) => {
   return {
     children: async ({project}) => {
       const urls = await handlesFn({project})
-      return urls.map((url) => ({
-        id: url,
-        type
-      }))
+      return urls.map((url) => {
+        const returnValue = {type}
+        if (typeof url === 'string') {
+          returnValue.id = url
+        } else {
+          returnValue.id = url.url
+          returnValue._data = url.data // eslint-disable-line no-underscore-dangle
+        }
+        return returnValue
+      })
     },
     childrenWatcher: handlesWatcherFn,
-    content: ({id, project}) => handleFn({project, url: id}),
+    content: ({_data, id, project}) => handleFn({data: _data, project, url: id}),
     contentWatcher: handleWatcherFn ? ({id, notifyFn}) => handleWatcherFn({notifyFn, url: id}) : null
   }
 }

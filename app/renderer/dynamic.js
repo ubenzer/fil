@@ -13,7 +13,8 @@ export class DynamicRenderer {
     const url = request.url
 
     if (url === '/?urlList') {
-      const handledUrlList = await this._project.handledUrls().catch(translateError)
+      const urlInfo = await this._project.handledUrls()
+      const handledUrlList = urlInfo.urls.map(({url: u}) => u)
       DynamicRenderer.renderUrlList({handledUrlList, response})
       return
     }

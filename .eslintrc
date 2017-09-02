@@ -28,6 +28,7 @@
     "capitalized-comments": "off",
     "consistent-return": "off",
     "dot-location": ["error", "property"],
+    "function-paren-newline": ["error", "consistent"],
     "id-length": 0,
     "indent": ["error", 2],
     "lines-around-comment": "off",

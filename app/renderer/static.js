@@ -1,4 +1,5 @@
 import Gauge from 'gauge'
+import {RouteManager} from '../routeManager'
 import fs from 'fs-extra'
 import path from 'path'
 
@@ -10,13 +11,13 @@ export class StaticRenderer {
 
   async render() {
     this._gauge.show('Getting url list...', 0)
-    const {duplicates, items} = await this._project.checkForDuplicateUrls()
+    const {duplicates, urls} = await this._project.handledUrls()
 
     if (Object.keys(duplicates).length > 0) {
-      throw new Error(StaticRenderer.generateDuplicateUrlErrorText(duplicates))
+      throw new Error(RouteManager.generateDuplicateUrlErrorText(duplicates))
     }
 
-    const totalCount = items.length
+    const totalCount = urls.length
 
     let idx = 0
 
@@ -38,13 +39,4 @@ export class StaticRenderer {
 
     this._gauge.hide()
   }
-}
-StaticRenderer.generateDuplicateUrlErrorText = (duplicates) => {
-  let string = "Some url's are handled by more than one handler. Please fix duplicated handling and try again:\n\n"
-  Object.keys(duplicates)
-    .forEach((url) => {
-      const handlers = duplicates[url].handler
-      string += `${url} is handled by ${handlers.join(', ')}\n`
-    })
-  return string
 }
