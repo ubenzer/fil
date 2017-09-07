@@ -1,6 +1,6 @@
 {
   "name": "fil",
-  "version": "8.1.2",
+  "version": "8.2.0",
   "description": "A superfast static site generator",
   "scripts": {
     "compile": "shx rm -r compiled && cross-env NODE_ENV=compile babel app -d compiled",
@@ -39,10 +39,10 @@
     "babel-preset-es2015": "^6.24.1",
     "codecov": "^2.3.0",
     "cross-env": "^5.0.5",
-    "eslint": "^4.6.0",
+    "eslint": "^4.6.1",
     "jasmine": "^2.8.0",
     "jasmine-promise-wrapper": "0.0.3",
-    "nyc": "^11.1.0",
+    "nyc": "^11.2.1",
     "shx": "^0.2.2"
   },
   "keywords": [

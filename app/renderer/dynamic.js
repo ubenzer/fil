@@ -1,3 +1,4 @@
+import urlUtils from 'url'
 import browserSync from 'browser-sync'
 import {headersFor} from '../utils/http'
 import http from 'http'
@@ -10,16 +11,17 @@ export class DynamicRenderer {
   }
 
   async handleRequest(request, response) {
-    const url = request.url
+    const url = urlUtils.parse(request.url);
 
-    if (url === '/?urlList') {
+
+    if (url.query === 'urlList') {
       const urlInfo = await this._project.handledUrls()
       const handledUrlList = urlInfo.urls.map(({url: u}) => u)
       DynamicRenderer.renderUrlList({handledUrlList, response})
       return
     }
 
-    const generatedPage = await this._project.handle({url}).catch(translateError)
+    const generatedPage = await this._project.handle({url: url.pathname}).catch(translateError)
 
     if (generatedPage instanceof Error) {
       if (generatedPage.message === '404') {
@@ -31,7 +33,7 @@ export class DynamicRenderer {
     }
     const {body} = generatedPage
 
-    const headers = headersFor({url})
+    const headers = headersFor({url: url.pathname})
 
     response.writeHead(200, headers)
     response.end(body)
