@@ -1,8 +1,8 @@
-import urlUtils from 'url'
 import browserSync from 'browser-sync'
 import {headersFor} from '../utils/http'
 import http from 'http'
 import {translateError} from '../utils/misc'
+import urlUtils from 'url'
 
 /* eslint-disable no-console */
 export class DynamicRenderer {
@@ -11,7 +11,7 @@ export class DynamicRenderer {
   }
 
   async handleRequest(request, response) {
-    const url = urlUtils.parse(request.url);
+    const url = urlUtils.parse(request.url)
 
 
     if (url.query === 'urlList') {
