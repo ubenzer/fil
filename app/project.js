@@ -69,9 +69,11 @@ export class Project {
   async handledUrls() {
     return this._routeManager.handledUrls()
   }
+
   async handle({url}) {
     return this._routeManager.handle({url})
   }
+
   async handleAll({urlProcessFn}) {
     return this._routeManager.handleAll({urlProcessFn})
   }
@@ -81,10 +83,12 @@ export class Project {
     // Returns an array of registered types
     return this._contentManager.contentTypes()
   }
+
   async metaOf({id, type}) {
     // / Returns all contents registered to a type
     return this._contentManager.metaOf({id, type})
   }
+
   async valueOf({_data, id, type}) {
     return this._contentManager.valueOf({_data, id, type})
   }
