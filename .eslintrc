@@ -52,6 +52,7 @@
     "object-property-newline": "off",
     "one-var": ["error", "never"],
     "quote-props": ["error", "consistent-as-needed"],
-    "quotes": ["error", "single", {"avoidEscape": true}]
+    "quotes": ["error", "single", {"avoidEscape": true}],
+    "implicit-arrow-linebreak": 0
   }
 }
