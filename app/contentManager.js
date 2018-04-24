@@ -1,79 +1,74 @@
-import {ReactiveCache} from './reactiveCache'
-import Rx from 'rxjs/Rx'
-import debugc from 'debug'
+const debugc = require('debug')
+const Rx = require('rxjs/Rx')
+const {clearCache, readHash, markCacheItemAsDirty, writeHash, readCache, writeCache} = require('./utils/cache')
 
 const debug = debugc('fil:contentManager')
 
-export class ContentManager {
-  constructor({project, checkForChanges}) {
-    this._project = project
-    this._checkForChanges = checkForChanges
-    this._cache = new ReactiveCache()
+class ContentManager {
+  constructor({cachePath, contentTypes, contentVersion, listenToChanges}) {
+    this._contentTypes = contentTypes
+    this._contentVersion = contentVersion
+    this._listenToChanges = listenToChanges
+    this._cachePath = cachePath
+    this._watcherCancelFunctions = []
+    this._cache = {}
     this._allContentsChangeSubscriber = null
     this._allContentsChangeObservable = Rx.Observable.create((subscriber) => {
       this._allContentsChangeSubscriber = subscriber
     })
   }
 
-  contentTypes() {
-    return Object.keys(this._project._project.contentTypes) // eslint-disable-line no-underscore-dangle
-  }
-
-  async metaOf({id, type}) {
-    const handler = this._getHandlerFor({type})
-    const cacheEnabledCalculatorFn = handler.useChildrenCache || (() => Boolean(handler.childrenWatcher))
-    const useCache = cacheEnabledCalculatorFn({id, type})
-
-    const valueFn = async () => {
-      const childrenCalculatorFn = handler.children || ContentManager.defaultChildrenCalculator
-
-      const children = await childrenCalculatorFn({
-        id,
-        project: this._project,
-        type
-      })
-      return {
-        children,
-        id,
-        type
-      }
+  async init() {
+    debug('Checking if project is changed while fil is not running')
+    const [currentHash, cachedHash] = await Promise.all([
+      this._contentVersion(),
+      readHash({cachePath: this._cachePath}).catch(() => null)
+    ])
+    const useCache = currentHash === cachedHash
+    debug(`Current: ${currentHash} Cached: ${cachedHash}`)
+    if (!useCache) {
+      debug('Cache will be ignored.')
+      await clearCache({cachePath: this._cachePath})
+      debug('Deleted the obsolete cache data...')
     }
 
-    if (!useCache) { return valueFn() }
+    debug('Loading contents from project...')
+    await Promise.all(
+      Object.keys(this._contentTypes).map(
+        async (ct) => {
+          if (useCache) {
+            debug(`Reading contents from cache for ${ct}...`)
+            this._cache[ct] =
+              await readCache({
+                cachePath: this._cachePath,
+                key: ct
+              })
+            debug(`Read contents from cache for ${ct}.`)
+          } else {
+            debug(`Discovering contents from project for ${ct}...`)
+            const itemIds = await this._contentTypes[ct].discover()
+            debug(`Discovered contents from disk for ${ct}.`)
 
-    const cacheKey = `${type}/meta/${id}`
+            debug(`Reading contents from project for ${ct}...`)
+            const contents = await Promise.all(
+              itemIds.map(async (id) => ({
+                content: await this._contentTypes[ct].read({id}),
+                id
+              }))
+            )
+            this._cache[ct] = contents.reduce((acc, content) => ({...acc, [content.id]: content.content}), {})
+            debug(`Read contents from project for ${ct}.`)
+          }
+        }
+      )
+    )
+    debug('Loaded contents.')
 
-    return this._cache.calculate({
-      id: cacheKey,
-      notifyFn: this._onChildrenChanged.bind(this, {id, type}),
-      valueFn,
-      watchFn: this._getWatcherFunction({candidateFn: handler.childrenWatcher, id, type})
-    })
-  }
-
-  async valueOf({_data, id, type}) {
-    const handler = this._getHandlerFor({type})
-    const cacheEnabledCalculatorFn = handler.useContentCache || (() => Boolean(handler.contentWatcher))
-    const useCache = cacheEnabledCalculatorFn({id, type})
-
-    const valueFn = async () =>
-      handler.content({
-        _data,
-        id,
-        project: this._project,
-        type
-      })
-
-    if (!useCache) { return valueFn() }
-
-    const cacheKey = `${type}/content/${id}`
-
-    return this._cache.calculate({
-      id: cacheKey,
-      notifyFn: this._onContentChanged.bind(this, {id, type}),
-      valueFn,
-      watchFn: this._getWatcherFunction({candidateFn: handler.contentWatcher, id, type})
-    })
+    if (this._listenToChanges) {
+      this._initWatchers()
+    } else {
+      debug('I am configured not to watch changes!')
+    }
   }
 
   watcher$() {
@@ -81,89 +76,67 @@ export class ContentManager {
   }
 
   async persistCache() {
-    return this._cache.persistCache({
-      cachePath: this._project.cachePath,
-      key: 'contents'
-    })
+    const hash = await this._contentVersion()
+    debug(`Content hash: ${hash}`)
+
+    await Promise.all([
+      writeHash({cachePath: this._cachePath, hash}),
+      ...Object.keys(this._contentTypes).map(
+        (ct) => writeCache({
+          cachePath: this._cachePath,
+          items: this._cache[ct],
+          key: ct
+        })
+      )
+    ])
   }
 
-  async loadCache() {
-    await this._cache.loadCache({
-      cachePath: this._project.cachePath,
-      functionLoaderFn: ({id: cacheKey}) => {
-        const [type, cacheType, ...idPieces] = cacheKey.split('/')
-        const id = idPieces.join('/')
-        const handler = this._getHandlerFor({type})
-        if (cacheType === 'meta') {
-          return {
-            notifyFn: this._onChildrenChanged.bind(this, {id, type}),
-            watchFn: this._getWatcherFunction({candidateFn: handler.childrenWatcher, id, type})
-          }
-        }
+  async destruct() {
+    this._watcherCancelFunctions.forEach((fn) => fn())
+  }
 
-        if (cacheType === 'content') {
-          return {
-            notifyFn: this._onContentChanged.bind(this, {id, type}),
-            watchFn: this._getWatcherFunction({candidateFn: handler.contentWatcher, id, type})
-          }
-        }
-
-        throw new Error(`I have no idea about how to load "${id}" from cache.`)
-      },
-      key: 'contents'
-    })
+  _initWatchers() {
+    this._watcherCancelFunctions = Object.keys(this._contentTypes).map(
+      (ct) => {
+        debug(`Setting up the watchers for ${ct}...`)
+        const cancelFn = this._contentTypes[ct].watchChanges({notifyFn: this._onContentChanged.bind(this, ct)})
+        debug(`Done up the watchers for ${ct}...`)
+        return cancelFn
+      }
+    )
+      .filter((fn) => fn instanceof Function)
   }
 
   /* Private operations */
-  _getHandlerFor({type}) {
-    const handlers = this._project._project.contentTypes // eslint-disable-line no-underscore-dangle
-    const handler = handlers[type]
-    if (!handler) {
-      throw new Error(`Handler "${type}" can't be found.`)
-    }
-    return handler
-  }
+  async _onContentChanged(contentType, id) {
+    debug(`Content changed for: ${contentType}/${id ? id : '@collection'}`)
 
-  _onContentChanged({id, type}) {
-    debug(`Content changed for: ${type}/${id}`)
+    if (id) {
+      const content = await this._contentTypes[contentType].read({id})
+      this._cache[contentType][id] = markCacheItemAsDirty(content)
+    } else {
+      const newIds = await this._contentTypes[contentType].discover()
+      const oldIds = Object.keys(this._cache[contentType])
+      const removed = oldIds.filter(
+        (oid) => newIds.filter((nid) => oid === nid).length === 0
+      )
+      const added = newIds.filter(
+        (nid) => oldIds.filter((oid) => oid === nid).length === 0
+      )
+
+      removed.forEach((r) => {
+        delete this._cache[contentType][r]
+      })
+
+      await Promise.all(added.map(async (a) => {
+        const content = await this._contentTypes[contentType].read({id: a})
+        this._cache[contentType][a] = markCacheItemAsDirty(content)
+      }))
+    }
+
     // Notify global subscriber that something changed recently
     this._allContentsChangeSubscriber.next()
-  }
-
-  async _onChildrenChanged({id, type}, {oldValue}) {
-    debug(`Children changed for: ${type}/${id}`)
-
-    const oldChildren = oldValue.children
-    const newChildren = (await this.metaOf({id, type})).children
-    const removedChildren = oldChildren.filter(
-      ({id: ocId, type: ocType}) =>
-        newChildren.filter(({id: ncId, type: ncType}) => ocId === ncId && ocType === ncType).length === 0
-    )
-
-    removedChildren.map(({id: rId, type: rType}) => this._deleteContent({id: rId, type: rType}))
-
-    // Notify global subscriber that something changed recently
-    this._allContentsChangeSubscriber.next()
-  }
-
-  _deleteContent({id, type}) {
-    this._cache.remove({id: `${type}/content/${id}`})
-    const meta = this._cache.remove({id: `${type}/meta/${id}`})
-
-    if (meta && meta.children) {
-      meta.children.map(({id: rId, type: rType}) => this._deleteContent({id: rId, type: rType}))
-    }
-  }
-
-  _getWatcherFunction({candidateFn, id, type}) {
-    return ({notifyFn}) => {
-      let fn = candidateFn || ContentManager.defaultWatcher
-      if (!this._checkForChanges) {
-        fn = ContentManager.defaultWatcher
-      }
-      return fn({id, notifyFn, type})
-    }
   }
 }
-ContentManager.defaultWatcher = () => null
-ContentManager.defaultChildrenCalculator = () => []
+
+module.exports = {ContentManager}

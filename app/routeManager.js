@@ -1,6 +1,8 @@
-export class RouteManager {
+class RouteManager {
   constructor({project}) {
     this._project = project
+    // eslint-disable-next-line no-underscore-dangle
+    this._renderers = project._project.renderers
   }
 
   async handle({url}) {
@@ -17,7 +19,7 @@ export class RouteManager {
 
     const {handler, data} = urlData
 
-    const {body} = await this._project.valueOf({_data: data, id: url, type: handler})
+    const {body} = await this._renderers[handler].render({data, querier: this._project.querier(), url})
     return {body}
   }
 
@@ -69,14 +71,12 @@ export class RouteManager {
   }
 
   /* Private operations */
-  async _handledUrlListFor({handlerId}) {
-    const {children} = await this._project.metaOf({id: null, type: handlerId})
-    return children.map(({_data, id}) => ({data: _data, url: id}))
-  }
-
   async _handledUrlsPerHandler() {
-    const contentTypes = Object.keys(this._project._project.routeHandlers) // eslint-disable-line no-underscore-dangle
-    const urlListPerHandler = await Promise.all(contentTypes.map((handlerId) => this._handledUrlListFor({handlerId})))
+    const contentTypes = Object.keys(this._renderers) // eslint-disable-line no-underscore-dangle
+    const urlListPerHandler = await Promise.all(contentTypes.map((handlerId) =>
+      this._renderers[handlerId].urlList({
+        querier: this._project.querier()
+      }))) // eslint-disable-line no-underscore-dangle
 
     return contentTypes
       .reduce((acc, handlerId, index) => ({[handlerId]: urlListPerHandler[index], ...acc}), {})
@@ -92,3 +92,5 @@ RouteManager.generateDuplicateUrlErrorText = (duplicates) => {
     })
   return string
 }
+
+module.exports = {RouteManager}

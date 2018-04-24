@@ -1,9 +1,9 @@
-import Gauge from 'gauge'
-import {RouteManager} from '../routeManager'
-import fs from 'fs-extra'
-import path from 'path'
+const Gauge = require('gauge')
+const {RouteManager} = require('../routeManager')
+const fs = require('fs-extra')
+const path = require('path')
 
-export class StaticRenderer {
+class StaticRenderer {
   constructor({project}) {
     this._project = project
     this._gauge = new Gauge()
@@ -40,3 +40,5 @@ export class StaticRenderer {
     this._gauge.hide()
   }
 }
+
+module.exports = {StaticRenderer}

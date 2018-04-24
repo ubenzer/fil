@@ -1,11 +1,12 @@
 #!/usr/bin/env node
-// import "source-map-support/register"
-import {ProjectRunner} from '../projectRunner'
-import fs from 'fs-extra'
-import npid from 'npid'
-import parseArgs from 'minimist'
-import path from 'path'
-import readline from 'readline'
+const {Project} = require('../project')
+const fs = require('fs-extra')
+const npid = require('npid')
+const parseArgs = require('minimist')
+const path = require('path')
+const readline = require('readline')
+const {DynamicRenderer} = require('../renderer/dynamic')
+const {StaticRenderer} = require('../renderer/static')
 
 /* eslint-disable no-console */
 console.info('=== Fil ===')
@@ -14,8 +15,8 @@ console.info(`Running using node ${process.version}`)
 const argv = parseArgs(process.argv, {boolean: ['dynamic', 'force', 'nocache']})
 
 const projectRootFile = require(path.join(process.cwd(), 'index.js'))
-// noinspection JSUnresolvedVariable
-const projectRunner = new ProjectRunner({
+
+const project = new Project({
   listenToChanges: argv.dynamic,
   project: projectRootFile,
   useCache: !argv.nocache
@@ -39,7 +40,7 @@ if (process.platform === 'win32') {
 }
 
 const cleanup = async () =>
-  projectRunner.persistCache()
+  project.persistCache()
     .catch((e) => {
       console.error(e)
       process.exitCode = 1
@@ -66,18 +67,18 @@ process.on('SIGINT', () => {
     })
 })
 
-projectRunner.init()
+project.init()
   .then(() => {
     if (argv.dynamic) {
-      return projectRunner.generateDynamic()
+      return new DynamicRenderer({project}).serve()
         .then(() => new Promise(() => {
           // prevent resolving forever.
         }))
     }
-    return projectRunner.generateStatic()
+    return new StaticRenderer({project}).render()
   })
   .catch((e) => {
-    console.error(e)
+    console.trace(e)
     process.exitCode = 2
   })
   .then(cleanup)

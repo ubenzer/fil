@@ -1,11 +1,11 @@
-import browserSync from 'browser-sync'
-import {headersFor} from '../utils/http'
-import http from 'http'
-import {translateError} from '../utils/misc'
-import urlUtils from 'url'
+const browserSync = require('browser-sync')
+const {headersFor} = require('../utils/http')
+const http = require('http')
+const {translateError} = require('../utils/misc')
+const urlUtils = require('url')
 
 /* eslint-disable no-console */
-export class DynamicRenderer {
+class DynamicRenderer {
   constructor({project}) {
     this._project = project
   }
@@ -39,7 +39,7 @@ export class DynamicRenderer {
     response.end(body)
   }
 
-  async render() {
+  async serve() {
     return new Promise((resolve, reject) => {
       http.createServer(this.handleRequest.bind(this))
         .listen(4000, (err) => {
@@ -67,7 +67,7 @@ DynamicRenderer.render404 = ({response}) => {
   response.end('404 - Nein!')
 }
 DynamicRenderer.render500 = ({error, response}) => {
-  console.error(error)
+  console.trace(error)
   response.writeHead(500)
   response.end('<head></head><body>500 - Check console</body>')
 }
@@ -78,3 +78,5 @@ DynamicRenderer.renderUrlList = ({handledUrlList, response}) => {
   response.write(body)
   response.end()
 }
+
+module.exports = {DynamicRenderer}

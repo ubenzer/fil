@@ -39,6 +39,7 @@
     "newline-after-var": "off",
     "newline-before-return": "off",
     "no-magic-numbers": "off",
+    "no-param-reassign": "off",
     "no-plusplus": "off",
     "no-underscore-dangle": ["error", {"allowAfterThis": true}],
     "no-ternary": "off",
@@ -48,11 +49,26 @@
     "require-await": "off",
     "semi": ["error", "never"],
     "space-before-function-paren": [2, {"anonymous": "never", "named": "never", "asyncArrow": "always"}],
-    "object-curly-newline": ["error", {"multiline": true}],
+    "object-curly-newline": "off",
     "object-property-newline": "off",
     "one-var": ["error", "never"],
     "quote-props": ["error", "consistent-as-needed"],
     "quotes": ["error", "single", {"avoidEscape": true}],
     "implicit-arrow-linebreak": 0
-  }
+  },
+
+  "overrides": [
+    {
+      "files": ["*/*.test.js"],
+      "env": {
+        "jasmine": true,
+        "es6": true
+      },
+      "rules": {
+        "init-declarations": "off",
+        "no-underscore-dangle": "off",
+        "one-var": "off"
+      }
+    }
+  ]
 }

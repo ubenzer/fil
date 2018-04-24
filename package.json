@@ -1,49 +1,37 @@
 {
   "name": "fil",
-  "version": "8.2.3",
+  "version": "9.0.0",
   "description": "A superfast static site generator",
   "scripts": {
-    "compile": "shx rm -r compiled && cross-env NODE_ENV=compile babel app -d compiled",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "test": "cross-env NODE_ENV=test nyc --all spec/run.js",
-    "test:debug": "cross-env NODE_ENV=test node $NODE_DEBUG_OPTION spec/run.js"
+    "test": "cross-env NODE_ENV=test nyc jasmine"
   },
   "bin": {
-    "fil": "./compiled/bin/index.js"
+    "fil": "./app/bin/index.js"
   },
   "author": "Umut Benzer <umut@benzer.me>",
   "license": "MIT",
   "dependencies": {
-    "babel-runtime": "^6.26.0",
-    "browser-sync": "^2.23.6",
+    "browser-sync": "^2.23.7",
     "debug": "^3.1.0",
     "fs-extra": "^5.0.0",
     "gauge": "^2.7.4",
     "lodash.isplainobject": "^4.0.6",
+    "lokijs": "^1.5.3",
     "mime-types": "^2.1.18",
     "minimist": "^1.2.0",
     "npid": "^0.4.0",
-    "rxjs": "^5.5.7",
-    "supports-color": "^5.3.0",
+    "rxjs": "^5.5.10",
+    "supports-color": "^5.4.0",
     "uuid": "^3.2.1"
   },
   "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-core": "^6.26.0",
-    "babel-plugin-istanbul": "^4.1.5",
-    "babel-plugin-rewire": "^1.1.0",
-    "babel-plugin-transform-async-to-generator": "^6.24.1",
-    "babel-plugin-transform-object-rest-spread": "^6.26.0",
-    "babel-plugin-transform-runtime": "^6.23.0",
-    "babel-preset-es2015": "^6.24.1",
     "codecov": "^3.0.0",
     "cross-env": "^5.1.4",
-    "eslint": "^4.18.2",
+    "eslint": "^4.19.1",
     "jasmine": "^3.1.0",
     "jasmine-promise-wrapper": "0.0.3",
-    "nyc": "^11.6.0",
-    "shx": "^0.2.2"
+    "nyc": "^11.7.1"
   },
   "keywords": [
     "static-site",
@@ -52,7 +40,8 @@
     "blog",
     "wordpress",
     "collections",
-    "taxonomy"
+    "taxonomy",
+    "contentful"
   ],
   "repository": {
     "type": "git",
@@ -62,18 +51,18 @@
     "url": "https://github.com/ubenzer/fil/issues"
   },
   "nyc": {
-    "require": [
-      "babel-register"
+    "all": true,
+    "exclude": [
+      "app/**/*.test.js"
     ],
-    "sourceMap": false,
-    "instrument": false,
     "include": [
-      "app/**"
-    ],
+			"app/**/*.js"
+		],
     "reporter": [
       "lcov",
       "text",
       "json"
-    ]
+    ],
+    "cache": false
   }
 }

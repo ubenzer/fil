@@ -1,48 +1,70 @@
-import {RouteManager} from '../app/routeManager'
-import {it} from 'jasmine-promise-wrapper'
+const {RouteManager} = require('../app/routeManager')
+const {it} = require('jasmine-promise-wrapper')
 
 let mockProject
+let querier
 
 beforeEach(() => {
+  querier = {}
   mockProject = {
     _project: {
-      routeHandlers: {
-        testHandler1: {},
-        testHandler2: {}
+      renderers: {
+        testHandler1: {
+          render: jasmine.createSpy('testHandler1render', async () => ({body: 'body'})).and.callThrough(),
+          urlList: jasmine.createSpy('testHandler1urlList', () => [
+            {
+              data: 'data@th1',
+              url: '/url-th1'
+            }
+          ]).and.callThrough()
+        },
+        testHandler2: {
+          urlList: jasmine.createSpy('testHandler2urlList', () => [
+            {
+              data: 'data@th2',
+              url: '/url-th2'
+            }
+          ]).and.callThrough()
+        }
       }
-    }
+    },
+    querier: jasmine.createSpy('querier', () => querier).and.callThrough()
   }
 })
 
 describe('RouteManager', () => {
   describe('handledUrls', () => {
     it('returns handled url list', async () => {
-      mockProject.metaOf = jasmine.createSpy('metaOf', async ({type}) => ({
-        children: [
-          {
-            _data: `data@${type}`,
-            id: `/url@${type}`
-          },
-          {id: '/duplicateUrl'}
-        ]
-      })).and.callThrough()
+      // add some duplicate urls to be able to test the feature
+      mockProject._project.renderers.testHandler1.urlList = jasmine.createSpy('testHandler1urlList', () => [
+        {
+          data: 'data@th1',
+          url: '/url-th1'
+        },
+        {url: '/duplicateUrl'}
+      ]).and.callThrough()
+
+      // add some duplicate urls to be able to test the feature
+      mockProject._project.renderers.testHandler2.urlList = jasmine.createSpy('testHandler1urlList', () => [
+        {
+          data: 'data@th2',
+          url: '/url-th2'
+        },
+        {url: '/duplicateUrl'}
+      ]).and.callThrough()
 
       const routeManager = new RouteManager({project: mockProject})
       const output = await routeManager.handledUrls()
 
-      expect(mockProject.metaOf).toHaveBeenCalledTimes(2)
-      expect(mockProject.metaOf).toHaveBeenCalledWith({
-        id: null,
-        type: 'testHandler2'
-      })
+      expect(mockProject.querier).toHaveBeenCalledTimes(2)
 
       expect(Object.keys(output.duplicates).length).toEqual(1)
       expect(output.duplicates['/duplicateUrl']).toEqual({handler: ['testHandler2', 'testHandler1']})
       expect(output.urls.length).toEqual(3)
       expect(output.urls).toContain({
-        data: 'data@testHandler2',
+        data: 'data@th2',
         handler: 'testHandler2',
-        url: '/url@testHandler2'
+        url: '/url-th2'
       })
     })
   })
@@ -50,32 +72,17 @@ describe('RouteManager', () => {
   describe('handle', () => {
     it('handles a url', async () => {
       const routeManager = new RouteManager({project: mockProject})
-      routeManager.handledUrls = jasmine.createSpy('handledUrls', async () => ({
-        duplicates: {},
-        urls: [
-          {
-            data: 'data@testHandler2',
-            handler: 'testHandler2',
-            url: '/testHandler2Url'
-          },
-          {
-            data: 'data@testHandler',
-            handler: 'testHandler',
-            url: '/testHandlerUrl'
-          }
-        ]
-      })).and.callThrough()
-      mockProject.valueOf = jasmine.createSpy('valueOf', async () => ({body: 'body'})).and.callThrough()
+      spyOn(routeManager, 'handledUrls').and.callThrough()
 
-      const output = await routeManager.handle({url: '/testHandlerUrl'})
+      const output = await routeManager.handle({url: '/url-th1'})
       expect(output.body).toEqual('body')
 
       expect(routeManager.handledUrls).toHaveBeenCalledTimes(1)
-      expect(mockProject.valueOf).toHaveBeenCalledTimes(1)
-      expect(mockProject.valueOf).toHaveBeenCalledWith({
-        _data: 'data@testHandler',
-        id: '/testHandlerUrl',
-        type: 'testHandler'
+      expect(mockProject._project.renderers.testHandler1.render).toHaveBeenCalledTimes(1)
+      expect(mockProject._project.renderers.testHandler1.render).toHaveBeenCalledWith({
+        data: 'data@th1',
+        querier,
+        url: '/url-th1'
       })
     })
 
