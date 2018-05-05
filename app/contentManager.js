@@ -1,5 +1,5 @@
 const debugc = require('debug')
-const Rx = require('rxjs/Rx')
+const Rx = require('rxjs')
 const {clearCache, readHash, markCacheItemAsDirty, writeHash, readCache, writeCache} = require('./utils/cache')
 
 const debug = debugc('fil:contentManager')
@@ -19,17 +19,21 @@ class ContentManager {
   }
 
   async init() {
-    debug('Checking if project is changed while fil is not running')
-    const [currentHash, cachedHash] = await Promise.all([
-      this._contentVersion(),
-      readHash({cachePath: this._cachePath}).catch(() => null)
-    ])
-    const useCache = currentHash === cachedHash
-    debug(`Current: ${currentHash} Cached: ${cachedHash}`)
-    if (!useCache) {
-      debug('Cache will be ignored.')
-      await clearCache({cachePath: this._cachePath})
-      debug('Deleted the obsolete cache data...')
+    let useCache = false
+    if (this._cachePath !== null) {
+      debug('Checking if project is changed while fil is not running')
+      const [currentHash, cachedHash] = await Promise.all([
+        this._contentVersion(),
+        readHash({cachePath: this._cachePath}).catch(() => null)
+      ])
+      useCache = currentHash === cachedHash
+      debug(`Current: ${currentHash} Cached: ${cachedHash}`)
+
+      if (!useCache) {
+        debug('Cache will be ignored.')
+        await clearCache({cachePath: this._cachePath})
+        debug('Deleted the obsolete cache data...')
+      }
     }
 
     debug('Loading contents from project...')
@@ -76,6 +80,10 @@ class ContentManager {
   }
 
   async persistCache() {
+    if (this._cachePath !== null) {
+      return
+    }
+
     const hash = await this._contentVersion()
     debug(`Content hash: ${hash}`)
 

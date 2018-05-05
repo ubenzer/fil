@@ -1,11 +1,8 @@
 const {ContentManager} = require('./contentManager')
 const {RouteManager} = require('./routeManager')
-const Rx = require('rxjs/Rx')
+const Rx = require('rxjs')
 const debugc = require('debug')
-const os = require('os')
-const path = require('path')
 const {toObservable} = require('./utils/misc')
-const uuidV1 = require('uuid/v1')
 
 const debug = debugc('fil:project')
 
@@ -18,7 +15,7 @@ class Project {
       this._cachePath = this._project.cachePath
     } else {
       debug('Cache will not be used')
-      this._cachePath = path.join(os.tmpdir(), uuidV1())
+      this._cachePath = null
     }
   }
 
@@ -73,7 +70,7 @@ class Project {
   /* The ultimate change detector */
   watcher$() {
     if (!this._listenToChanges) { return Rx.Observable.empty() }
-    return Rx.Observable.merge(
+    return Rx.merge(
       this._contentManager.watcher$(),
       toObservable({fn: this._project.watcher})
     )
