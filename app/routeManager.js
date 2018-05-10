@@ -60,12 +60,10 @@ class RouteManager {
 
     for (const handlerId of Object.keys(urlListPerHandler)) {
       for (const {url, data} of urlListPerHandler[handlerId]) {
-        const {body} = await this._project.valueOf({ // eslint-disable-line no-await-in-loop
-          _data: data,
-          id: url,
-          type: handlerId
-        })
-        await urlProcessFn({body, handlerId, url}) // eslint-disable-line no-await-in-loop
+        // eslint-disable-next-line no-await-in-loop
+        const {body} = await this._renderers[handlerId].render({data, querier: this._project.querier(), url})
+        // eslint-disable-next-line no-await-in-loop
+        await urlProcessFn({body, handlerId, url})
       }
     }
   }

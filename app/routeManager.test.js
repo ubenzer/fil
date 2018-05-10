@@ -19,6 +19,7 @@ beforeEach(() => {
           ]).and.callThrough()
         },
         testHandler2: {
+          render: jasmine.createSpy('testHandler2render', async () => ({body: 'body'})).and.callThrough(),
           urlList: jasmine.createSpy('testHandler2urlList', () => [
             {
               data: 'data@th2',
@@ -137,7 +138,7 @@ describe('RouteManager', () => {
     it('handles all urls one by and and calls a function for each one of them', async () => {
       const routeManager = new RouteManager({project: mockProject})
       routeManager._handledUrlsPerHandler = async () => ({
-        handler1: [
+        testHandler1: [
           {
             data: 'data@h1u1',
             url: '/h1u1'
@@ -147,7 +148,7 @@ describe('RouteManager', () => {
             url: '/h1u2'
           }
         ],
-        handler2: [
+        testHandler2: [
           {
             data: 'data@h2u1',
             url: '/h2u1'
@@ -158,28 +159,31 @@ describe('RouteManager', () => {
           }
         ]
       })
-      mockProject.valueOf = jasmine.createSpy('valueOf', async ({_data, id, type}) =>
-        ({body: `${_data}-${id}-${type}`})).and.callThrough()
 
       const urlProcessFn = jasmine.createSpy('urlProcessFn', async () => '').and.callThrough()
       await routeManager.handleAll({urlProcessFn})
 
-      expect(mockProject.valueOf).toHaveBeenCalledTimes(4)
-      expect(mockProject.valueOf).toHaveBeenCalledWith({
-        _data: 'data@h1u2',
-        id: '/h1u2',
-        type: 'handler1'
+      expect(mockProject._project.renderers.testHandler1.render).toHaveBeenCalledTimes(2)
+      expect(mockProject._project.renderers.testHandler1.render).toHaveBeenCalledWith({
+        data: 'data@h1u1',
+        querier,
+        url: '/h1u1'
       })
-      expect(mockProject.valueOf).toHaveBeenCalledWith({
-        _data: 'data@h2u2',
-        id: '/h2u2',
-        type: 'handler2'
+      expect(mockProject._project.renderers.testHandler1.render).toHaveBeenCalledWith({
+        data: 'data@h1u2',
+        querier,
+        url: '/h1u2'
       })
 
-      expect(urlProcessFn).toHaveBeenCalledTimes(4)
-      expect(urlProcessFn).toHaveBeenCalledWith({
-        body: 'data@h2u2-/h2u2-handler2',
-        handlerId: 'handler2',
+      expect(mockProject._project.renderers.testHandler2.render).toHaveBeenCalledTimes(2)
+      expect(mockProject._project.renderers.testHandler2.render).toHaveBeenCalledWith({
+        data: 'data@h2u1',
+        querier,
+        url: '/h2u1'
+      })
+      expect(mockProject._project.renderers.testHandler2.render).toHaveBeenCalledWith({
+        data: 'data@h2u2',
+        querier,
         url: '/h2u2'
       })
     })

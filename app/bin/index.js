@@ -27,6 +27,7 @@ const pidFolder = path.join(process.cwd(), projectRootFile.cachePath)
 fs.ensureDirSync(pidFolder) // eslint-disable-line no-sync
 
 const pid = npid.create(path.join(pidFolder, 'running.pid'), argv.force)
+process.exitCode = 0
 
 if (process.platform === 'win32') {
   const rl = readline.createInterface({
