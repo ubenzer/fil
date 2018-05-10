@@ -1,5 +1,5 @@
-import mime from 'mime-types'
-import path from 'path'
+const mime = require('mime-types')
+const path = require('path')
 
 const headersFor = ({url}) => {
   let normalizedUrl = url
@@ -10,4 +10,4 @@ const headersFor = ({url}) => {
   return {'Content-Type': mime.contentType(path.extname(normalizedUrl)) || 'application/octet-stream'}
 }
 
-export {headersFor}
+module.exports = {headersFor}

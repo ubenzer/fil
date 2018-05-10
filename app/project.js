@@ -1,68 +1,38 @@
-import {clearCache, readHash, writeHash} from './utils/cache'
-import {ContentManager} from './contentManager'
-import {RouteManager} from './routeManager'
-import Rx from 'rxjs/Rx'
-import debugc from 'debug'
-import os from 'os'
-import path from 'path'
-import {toObservable} from './utils/misc'
-import uuidV1 from 'uuid/v1'
+const {ContentManager} = require('./contentManager')
+const {RouteManager} = require('./routeManager')
+const Rx = require('rxjs')
+const debugc = require('debug')
+const {toObservable} = require('./utils/misc')
 
 const debug = debugc('fil:project')
 
-export class Project {
+class Project {
   constructor({listenToChanges, project, useCache}) {
-    const contentTypes = Object.keys(project.routeHandlers)
-      .map((key) => {
-        const handler = project.routeHandlers[key]
-        const content = Project.routeHandler2RegularContent({routeHandler: handler, type: key})
-        return {content, key}
-      })
-      .reduce((acc, {content, key}) => {
-        if (acc[key]) {
-          throw new Error(`Duplicate key ${key}`)
-        }
-        return {[key]: content, ...acc}
-      }, project.contentTypes || {})
-
-    this._project = {...project, contentTypes}
-
+    this._project = project
     this._listenToChanges = listenToChanges
     this._useCache = useCache
-    this._routeManager = new RouteManager({project: this})
-    this._contentManager = new ContentManager({checkForChanges: listenToChanges, project: this})
-
-    if (this._useCache) {
-      this.cachePath = this._project.cachePath
+    if (useCache) {
+      this._cachePath = this._project.cachePath
     } else {
-      this.cachePath = path.join(os.tmpdir(), uuidV1())
+      debug('Cache will not be used')
+      this._cachePath = null
     }
   }
 
-  /* init & dispose logic */
-  async initCache() {
-    if (!this._useCache) {
-      debug('Cache will not be used')
-      return
-    }
-    debug('Checking if project is changed while fil is not running')
-    const cachePath = this._project.cachePath
-    const [currentHash, cachedHash] = await Promise.all([
-      this._project.contentVersion(),
-      readHash({cachePath}).catch(() => null)
-    ])
-    debug(`Current: ${currentHash} Cached: ${cachedHash}`)
+  async init() {
+    debug('Initializing content manager...')
+    this._contentManager = new ContentManager({
+      cachePath: this._cachePath,
+      contentTypes: this._project.contentTypes,
+      contentVersion: this._project.contentVersion,
+      listenToChanges: this._listenToChanges
+    })
+    await this._contentManager.init()
+    debug('Content manager ready.')
 
-    if (currentHash !== cachedHash) {
-      debug('Cache will be ignored.')
-      await clearCache({cachePath})
-      debug(`Deleted up obsolete cache data... (${cachePath})`)
-      return
-    }
-
-    debug('Loading cache...')
-    await this._contentManager.loadCache()
-    debug('Cache ready!')
+    debug('Initializing route manager...')
+    this._routeManager = new RouteManager({project: this})
+    debug('Content manager is ready.')
   }
 
   /* Route related stuff */
@@ -84,13 +54,9 @@ export class Project {
     return this._contentManager.contentTypes()
   }
 
-  async metaOf({id, type}) {
-    // / Returns all contents registered to a type
-    return this._contentManager.metaOf({id, type})
-  }
-
-  async valueOf({_data, id, type}) {
-    return this._contentManager.valueOf({_data, id, type})
+  querier() {
+    // eslint-disable-next-line no-underscore-dangle
+    return this._contentManager._cache
   }
 
   /* Cache persistence */
@@ -98,20 +64,13 @@ export class Project {
     if (!this._useCache) { return }
     debug('Persisting cache')
 
-    const cachePath = this._project.cachePath
-    const hash = await this._project.contentVersion()
-    debug(`Content hash: ${hash}`)
-
-    return Promise.all([
-      writeHash({cachePath, hash}),
-      this._contentManager.persistCache()
-    ])
+    await this._contentManager.persistCache()
   }
 
   /* The ultimate change detector */
   watcher$() {
     if (!this._listenToChanges) { return Rx.Observable.empty() }
-    return Rx.Observable.merge(
+    return Rx.merge(
       this._contentManager.watcher$(),
       toObservable({fn: this._project.watcher})
     )
@@ -122,28 +81,5 @@ export class Project {
     return this._project.outPath
   }
 }
-Project.routeHandler2RegularContent = ({type, routeHandler}) => {
-  const handleFn = routeHandler.handle
-  const handlesFn = routeHandler.handles
-  const handleWatcherFn = routeHandler.handleWatcher
-  const handlesWatcherFn = routeHandler.handlesWatcher
 
-  return {
-    children: async ({project}) => {
-      const urls = await handlesFn({project})
-      return urls.map((url) => {
-        const returnValue = {type}
-        if (typeof url === 'string') {
-          returnValue.id = url
-        } else {
-          returnValue.id = url.url
-          returnValue._data = url.data // eslint-disable-line no-underscore-dangle
-        }
-        return returnValue
-      })
-    },
-    childrenWatcher: handlesWatcherFn,
-    content: ({_data, id, project}) => handleFn({data: _data, project, url: id}),
-    contentWatcher: handleWatcherFn ? ({id, notifyFn}) => handleWatcherFn({notifyFn, url: id}) : null
-  }
-}
+module.exports = {Project}

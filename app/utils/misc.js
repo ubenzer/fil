@@ -1,5 +1,5 @@
-import Rx from 'rxjs/Rx'
-import isPlainObject from 'lodash.isplainobject'
+const Rx = require('rxjs')
+const isPlainObject = require('lodash.isplainobject')
 
 // https://gist.github.com/spion/8c9d8556697ed61108177164e90fb50d
 const translateError = (e) => e
@@ -41,4 +41,4 @@ const toObservable = ({fn}) => {
   })
 }
 
-export {deepMap, translateError, toObservable}
+module.exports = {deepMap, toObservable, translateError}
