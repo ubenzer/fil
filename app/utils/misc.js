@@ -25,9 +25,9 @@ const deepMap = (obj, fn) => {
   return fn(obj)
 }
 
-const toObservable = ({fn}) => {
+const toObservable = (fn) => {
   if (!fn) {
-    return Rx.Observable.empty()
+    return Rx.empty()
   }
 
   return Rx.Observable.create((subscriber) => {

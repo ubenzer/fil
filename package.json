@@ -1,10 +1,11 @@
 {
   "name": "fil",
-  "version": "9.0.0",
+  "version": "9.0.1",
   "description": "A superfast static site generator",
   "scripts": {
     "lint": "eslint .",
-    "test": "cross-env NODE_ENV=test nyc jasmine"
+    "test": "cross-env NODE_ENV=test nyc jasmine",
+    "test:watch": "nodemon --exec 'npm run test'"
   },
   "bin": {
     "fil": "./app/bin/index.js"
@@ -31,6 +32,7 @@
     "eslint": "^4.19.1",
     "jasmine": "^3.1.0",
     "jasmine-promise-wrapper": "0.0.3",
+    "nodemon": "^1.17.4",
     "nyc": "^11.7.3"
   },
   "keywords": [
@@ -53,7 +55,7 @@
   "nyc": {
     "all": true,
     "exclude": [
-      "app/**/*.test.js"
+      "app/**/*.spec.js"
     ],
     "include": [
       "app/**/*.js"

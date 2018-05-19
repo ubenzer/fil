@@ -69,10 +69,10 @@ class Project {
 
   /* The ultimate change detector */
   watcher$() {
-    if (!this._listenToChanges) { return Rx.Observable.empty() }
+    if (!this._listenToChanges) { return Rx.empty() }
     return Rx.merge(
       this._contentManager.watcher$(),
-      toObservable({fn: this._project.watcher})
+      toObservable(this._project.watcher)
     )
   }
 

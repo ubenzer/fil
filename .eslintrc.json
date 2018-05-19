@@ -58,7 +58,7 @@
 
   "overrides": [
     {
-      "files": ["*/*.test.js"],
+      "files": ["**/*.spec.js"],
       "env": {
         "jasmine": true,
         "es6": true

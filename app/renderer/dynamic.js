@@ -33,7 +33,7 @@ class DynamicRenderer {
     }
     const {body} = generatedPage
 
-    const headers = headersFor({url: url.pathname})
+    const headers = headersFor(url.pathname)
 
     response.writeHead(200, headers)
     response.end(body)

@@ -1,7 +1,7 @@
 const mime = require('mime-types')
 const path = require('path')
 
-const headersFor = ({url}) => {
+const headersFor = (url) => {
   let normalizedUrl = url
   if (url.endsWith('/')) {
     normalizedUrl = `${url}index.html`
