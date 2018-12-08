@@ -14,8 +14,8 @@
   "license": "MIT",
   "dependencies": {
     "browser-sync": "^2.24.4",
-    "debug": "^3.1.0",
-    "fs-extra": "^6.0.1",
+    "debug": "^4.1.0",
+    "fs-extra": "^7.0.1",
     "gauge": "^2.7.4",
     "lodash.isplainobject": "^4.0.6",
     "lokijs": "^1.5.3",
@@ -29,11 +29,11 @@
   "devDependencies": {
     "codecov": "^3.0.2",
     "cross-env": "^5.1.5",
-    "eslint": "^4.19.1",
+    "eslint": "^5.10.0",
     "jasmine": "^3.1.0",
     "jasmine-promise-wrapper": "0.0.3",
     "nodemon": "^1.17.4",
-    "nyc": "^11.7.3"
+    "nyc": "^13.1.0"
   },
   "keywords": [
     "static-site",
