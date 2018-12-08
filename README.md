@@ -5,7 +5,7 @@
 [![David](https://img.shields.io/david/dev/ubenzer/fil.svg?maxAge=3600&style=flat-square)](https://david-dm.org/ubenzer/fil#info=devDependencies)
 [![Codecov](https://img.shields.io/codecov/c/github/ubenzer/fil.svg?maxAge=3600&style=flat-square)](https://codecov.io/gh/ubenzer/fil)
 [![npm](https://img.shields.io/npm/v/fil.svg?maxAge=3600&style=flat-square)](https://www.npmjs.com/package/fil)
-[![npm](https://img.shields.io/npm/dt/fil.svg?maxAge=3600&style=flat-square)](https://www.npmjs.com/package/fil)
+[![npm](https://img.shields.io/npm/dt/fil.svg?maxAge=3600&style=flat-square)](https://www.npmjs.com/package/fil) [![Greenkeeper badge](https://badges.greenkeeper.io/ubenzer/fil.svg)](https://greenkeeper.io/)
 
 Fil is a static content engine that can be used to host no-so-dynamic web sites such as blogs, technical documents,
 internal company tech wikies and content management systems.
