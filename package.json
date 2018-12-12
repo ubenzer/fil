@@ -1,6 +1,6 @@
 {
   "name": "fil",
-  "version": "9.0.1",
+  "version": "9.0.2",
   "description": "A superfast static site generator",
   "scripts": {
     "lint": "eslint .",
@@ -13,27 +13,27 @@
   "author": "Umut Benzer <umut@benzer.me>",
   "license": "MIT",
   "dependencies": {
-    "browser-sync": "^2.24.4",
-    "debug": "^3.1.0",
-    "fs-extra": "^6.0.1",
+    "browser-sync": "^2.26.3",
+    "debug": "^4.1.0",
+    "fs-extra": "^7.0.1",
     "gauge": "^2.7.4",
     "lodash.isplainobject": "^4.0.6",
-    "lokijs": "^1.5.3",
-    "mime-types": "^2.1.18",
+    "lokijs": "^1.5.5",
+    "mime-types": "^2.1.21",
     "minimist": "^1.2.0",
     "npid": "^0.4.0",
-    "rxjs": "^6.1.0",
-    "supports-color": "^5.4.0",
-    "uuid": "^3.2.1"
+    "rxjs": "^6.3.3",
+    "supports-color": "^5.5.0",
+    "uuid": "^3.3.2"
   },
   "devDependencies": {
-    "codecov": "^3.0.2",
-    "cross-env": "^5.1.5",
-    "eslint": "^4.19.1",
-    "jasmine": "^3.1.0",
+    "codecov": "^3.1.0",
+    "cross-env": "^5.2.0",
+    "eslint": "^5.10.0",
+    "jasmine": "^3.3.1",
     "jasmine-promise-wrapper": "0.0.3",
-    "nodemon": "^1.17.4",
-    "nyc": "^11.7.3"
+    "nodemon": "^1.18.8",
+    "nyc": "^13.1.0"
   },
   "keywords": [
     "static-site",

@@ -14,10 +14,9 @@
 
   "parserOptions": {
     "sourceType": "module",
-    "ecmaVersion": 8,
+    "ecmaVersion": 9,
     "ecmaFeatures": {
-      "impliedStrict": true,
-      "experimentalObjectRestSpread": true
+      "impliedStrict": true
     }
   },
 
@@ -33,6 +32,7 @@
     "lines-around-comment": "off",
     "max-len": ["error", 120],
     "max-lines": ["error", 500],
+    "max-lines-per-function": ["error", 200],
     "max-statements": ["error", 20],
     "max-statements-per-line": ["error", {"max": 2}],
     "newline-after-var": "off",
