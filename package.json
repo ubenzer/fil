@@ -5,7 +5,9 @@
   "scripts": {
     "lint": "eslint .",
     "test": "cross-env NODE_ENV=test nyc jasmine",
-    "test:watch": "nodemon --exec 'npm run test'"
+    "test:watch": "nodemon --exec 'npm run test'",
+    "snyk-protect": "snyk protect",
+    "prepare": "npm run snyk-protect"
   },
   "bin": {
     "fil": "./app/bin/index.js"
@@ -24,7 +26,8 @@
     "npid": "^0.4.0",
     "rxjs": "^6.3.3",
     "supports-color": "^5.5.0",
-    "uuid": "^3.3.2"
+    "uuid": "^3.3.2",
+    "snyk": "^1.161.1"
   },
   "devDependencies": {
     "codecov": "^3.1.0",
@@ -66,5 +69,6 @@
       "json"
     ],
     "cache": false
-  }
+  },
+  "snyk": true
 }
